@@ -1,7 +1,13 @@
-from django.db import connection
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import logging
 
+from django.db import connection
+
+
 logger = logging.getLogger(__name__)
+
 
 class QueryCountDebugMiddleware(object):
     """
@@ -24,6 +30,7 @@ class QueryCountDebugMiddleware(object):
             total_time = 0
 
             for query in connection.queries:
+                logger.debug('%s query ==== ' % query)
                 query_time = query.get('time')
                 if query_time is None:
                     # django-debug-toolbar monkeypatches the connection
