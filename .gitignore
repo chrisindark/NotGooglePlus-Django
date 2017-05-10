@@ -1,4 +1,6 @@
+*.py~
 *.pyc
+*.pyc~
 .idea
 __pycache__
 development.py
