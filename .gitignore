@@ -1,0 +1,7 @@
+*.py~
+*.pyc
+*.pyc~
+.idea
+__pycache__
+media
+static
