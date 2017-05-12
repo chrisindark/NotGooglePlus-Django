@@ -193,7 +193,7 @@ def get_env_var(name, default=None):
 
 SECRET_KEY = 'v&s0ym!t$uc^vdufh8(tpac7c*=xyu#am8e32)e1f0bnr*ys(b'
 
-DEBUG = False
+DEBUG = True
 
 # SWAGGER SETTINGS
 SWAGGER_SETTINGS = {
@@ -215,6 +215,11 @@ MIDDLEWARE = ('notgoogleplus.middleware.QueryCountDebugMiddleware',) + MIDDLEWAR
 
 DATABASES = {}
 DATABASES['default'] = dj_database_url.config(conn_max_age=500)
+
+ALLOWED_HOSTS = (
+    'ancient-tor-16694.herokuapp.com',
+    '0.0.0.0'
+)
 
 CORS_ORIGIN_ALLOW_ALL = True
 
