@@ -97,15 +97,15 @@ class PostCommentDetailView(PostCommentMixin, generics.RetrieveUpdateDestroyAPIV
         return (permissions.IsAuthenticated(), IsOwner(),)
 
 
-class FileUploadPagination(PostPagination):
+class FilePagination(PostPagination):
     pass
 
 
-class FileUploadViewSet(viewsets.ModelViewSet):
-    queryset = FileUpload.objects.all()
-    serializer_class = FileUploadSerializer
-    pagination_class = FileUploadPagination
-    filter_class = FileUploadFilter
+class FileViewSet(viewsets.ModelViewSet):
+    queryset = File.objects.all()
+    serializer_class = FileSerializer
+    pagination_class = FilePagination
+    filter_class = FileFilter
 
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:

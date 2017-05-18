@@ -6,7 +6,7 @@ from .views import *
 
 router = routers.SimpleRouter()
 router.register(r'posts', PostViewSet)
-router.register(r'files', FileUploadViewSet)
+router.register(r'files', FileViewSet)
 
 urlpatterns = (
     url(r'^api/v1/', include(router.urls)),

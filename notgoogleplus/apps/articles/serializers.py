@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from notgoogleplus.apps.accounts.serializers import AccountSerializer
+from notgoogleplus.apps.profiles.serializers import ProfileSerializer
 
 from .models import *
 
@@ -16,7 +16,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class ArticleSerializer(serializers.ModelSerializer):
-    user = AccountSerializer(read_only=True)
+    user = ProfileSerializer(read_only=True, required=False)
     # title = serializers.CharField(required=False)
     # content = serializers.CharField(required=False)
     description = serializers.CharField(required=False)
@@ -26,7 +26,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = ('id', 'content', 'description', 'tags', 'slug', 'user',)
-        read_only_fields = ('slug', 'created_at', 'updated_at', 'user',)
+        read_only_fields = ('slug', 'created_at', 'updated_at',)
 
     @staticmethod
     def setup_eager_loading(queryset):
@@ -49,19 +49,19 @@ class ArticleSerializer(serializers.ModelSerializer):
         instance.save()
         instance.tags.clear()
         for tag in tags:
-            article.tags.add(tag)
+            instance.tags.add(tag)
 
         return instance
 
 
 class ArticleCommentSerializer(serializers.ModelSerializer):
-    user = AccountSerializer(read_only=True, required=False)
+    user = ProfileSerializer(read_only=True, required=False)
     article = ArticleSerializer(read_only=True, required=False)
 
     class Meta:
         model = ArticleComment
         fields = ('id', 'content', 'created_at', 'updated_at', 'post', 'user', 'article',)
-        read_only_fields = ('created_at', 'updated_at', 'user', 'article',)
+        read_only_fields = ('created_at', 'updated_at',)
 
     @staticmethod
     def setup_eager_loading(queryset):

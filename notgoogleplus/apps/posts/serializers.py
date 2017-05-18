@@ -2,13 +2,13 @@ from django.utils.crypto import get_random_string
 
 from rest_framework import serializers
 
-from notgoogleplus.apps.accounts.serializers import AccountSerializer
+from notgoogleplus.apps.profiles.serializers import ProfileSerializer
 
 from .models import *
 
 
 class PostSerializer(serializers.ModelSerializer):
-    user = AccountSerializer(read_only=True, required=False)
+    user = ProfileSerializer(read_only=True, required=False)
 
     class Meta:
         model = Post
@@ -30,7 +30,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class PostCommentSerializer(serializers.ModelSerializer):
-    user = AccountSerializer(read_only=True, required=False)
+    user = ProfileSerializer(read_only=True, required=False)
     post = PostSerializer(read_only=True, required=False)
 
     class Meta:
@@ -51,11 +51,11 @@ ALLOWED_AUDIO_TYPES = ('audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg',)
 ALLOWED_VIDEO_TYPES = ('video/mp4', 'video/webm', 'video/ogg',)
 
 
-class FileUploadSerializer(serializers.ModelSerializer):
-    # user = AccountSerializer(read_only=True, required=False)
+class FileSerializer(serializers.ModelSerializer):
+    # user = ProfileSerializer(read_only=True, required=False)
 
     class Meta:
-        model = FileUpload
+        model = File
         fields = ('id', 'file', 'name', 'file_type', 'file_content_type', 'size', 'created_at', 'updated_at', 'user',)
         read_only_fields = ('name', 'file_type', 'file_content_type', 'size', 'created_at', 'updated_at',)
 

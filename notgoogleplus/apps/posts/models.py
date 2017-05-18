@@ -4,7 +4,8 @@ from django.conf import settings
 
 # Create your models here.
 class Post(models.Model):
-    user = models.ForeignKey('accounts.Account', related_name='posts', on_delete=models.CASCADE)
+    user = models.ForeignKey('profiles.Profile', related_name='posts', on_delete=models.CASCADE)
+    file = models.OneToOneField('posts.File', related_name='post_file', null=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -17,7 +18,7 @@ class Post(models.Model):
 
 
 class PostComment(models.Model):
-    user = models.ForeignKey('accounts.Account', related_name='post_comments', on_delete=models.CASCADE)
+    user = models.ForeignKey('profiles.Profile', related_name='post_comments', on_delete=models.CASCADE)
     post = models.ForeignKey('Post', related_name='post_comments', on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,8 +35,8 @@ def file_directory_path(instance, filename):
     return settings.FILE_UPLOAD_PATH + '{0}/{1}'.format(instance.user_id, instance.name)
 
 
-class FileUpload(models.Model):
-    user = models.ForeignKey('accounts.Account', related_name='files', on_delete=models.CASCADE)
+class File(models.Model):
+    user = models.ForeignKey('profiles.Profile', related_name='files', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     file = models.FileField(upload_to=file_directory_path, max_length=255)
     file_type = models.CharField(max_length=5)
@@ -52,7 +53,7 @@ class FileUpload(models.Model):
 
 
 # class LikesDislikes():
-#     user = models.ForeignKey('accounts.Account')
+#     user = models.ForeignKey('profiles.Profile')
 #     topic_type = models.CharField(max_length=255)
 #     topic_id = models.BigIntegerField()
 #     liked = models.NullBooleanField()

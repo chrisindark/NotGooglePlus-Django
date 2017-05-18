@@ -16,7 +16,7 @@ class Tag(TimestampedModel):
 
 
 class Article(TimestampedModel):
-    user = models.ForeignKey('accounts.Account', related_name='articles', on_delete=models.CASCADE)
+    user = models.ForeignKey('profiles.Profile', related_name='articles', on_delete=models.CASCADE)
     slug = models.SlugField(db_index=True, unique=True)
     title = models.CharField(db_index=True, max_length=255)
     description = models.TextField()
@@ -31,8 +31,8 @@ class Article(TimestampedModel):
 
 
 class ArticleComment(TimestampedModel):
-    user = models.ForeignKey('accounts.Account', related_name='article_comments', on_delete=models.CASCADE)
-    article = models.ForeignKey('Article', related_name='article_comments', on_delete=models.CASCADE)
+    user = models.ForeignKey('profiles.Profile', related_name='article_comments', on_delete=models.CASCADE)
+    article = models.ForeignKey('articles.Article', related_name='article_comments', on_delete=models.CASCADE)
     content = models.TextField()
 
     def __str__(self):
