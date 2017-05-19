@@ -3,7 +3,6 @@
 *.pyc~
 .idea
 __pycache__
-development.py
 production.py
 media
 static

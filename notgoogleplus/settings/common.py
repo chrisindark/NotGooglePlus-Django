@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -145,7 +146,7 @@ REST_FRAMEWORK = {
 AUTH_USER_MODEL = 'accounts.Account'
 AUTHENTICATION_BACKENDS = ('notgoogleplus.apps.accounts.backends.UsernameOrEmailBackend',)
 
-#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 LOGGING = {
     'disable_existing_loggers': False,
