@@ -7,50 +7,6 @@ from notgoogleplus.apps.profiles.serializers import ProfileSerializer
 from .models import *
 
 
-class PostSerializer(serializers.ModelSerializer):
-    user = ProfileSerializer(read_only=True, required=False)
-
-    class Meta:
-        model = Post
-        fields = ('id', 'content', 'created_at', 'updated_at', 'user',)
-        read_only_fields = ('created_at', 'updated_at',)
-
-    @staticmethod
-    def setup_eager_loading(queryset):
-        queryset = queryset.select_related('user')
-        return queryset
-
-    # def to_representation(self, obj):
-    #     obj = super(PostSerializer, self).to_representation(obj)
-    #     depth = self.context.get('request').query_params.get('depth')
-    #     if depth != '1':
-    #         obj.pop('user')
-
-    #     return obj
-
-
-class PostCommentSerializer(serializers.ModelSerializer):
-    user = ProfileSerializer(read_only=True, required=False)
-    post = PostSerializer(read_only=True, required=False)
-
-    class Meta:
-        model = PostComment
-        fields = ('id', 'content', 'created_at', 'updated_at', 'post', 'user',)
-        read_only_fields = ('created_at', 'updated_at',)
-
-    @staticmethod
-    def setup_eager_loading(queryset):
-        queryset = queryset.select_related('user')
-        return queryset
-
-
-ALLOWED_FILE_TYPES = ('image', 'audio', 'video',)
-ALLOWED_IMAGE_TYPES = ('image/jpeg', 'image/gif', 'image/png',
-                       'image/bmp', 'image/webp',)
-ALLOWED_AUDIO_TYPES = ('audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg',)
-ALLOWED_VIDEO_TYPES = ('video/mp4', 'video/webm', 'video/ogg',)
-
-
 class FileSerializer(serializers.ModelSerializer):
     # user = ProfileSerializer(read_only=True, required=False)
 
@@ -92,3 +48,51 @@ class FileSerializer(serializers.ModelSerializer):
         if file.content_type.split('/')[0] not in ALLOWED_FILE_TYPES:
             raise serializers.ValidationError({'file': 'File type should be of {0}'.format(', '.join(ALLOWED_FILE_TYPES))})
         return ALLOWED_FILE_TYPES[ALLOWED_FILE_TYPES.index(file.content_type.split('/')[0])]
+
+
+class PostSerializer(serializers.ModelSerializer):
+    user = ProfileSerializer(read_only=True, required=False)
+    file = FileSerializer(required=False)
+
+    class Meta:
+        model = Post
+        fields = ('id', 'content', 'created_at', 'updated_at', 'user', 'file',)
+        read_only_fields = ('created_at', 'updated_at',)
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('user')
+        return queryset
+
+    # def to_representation(self, obj):
+    #     obj = super(PostSerializer, self).to_representation(obj)
+    #     depth = self.context.get('request').query_params.get('depth')
+    #     if depth != '1':
+    #         obj.pop('user')
+
+    #     return obj
+
+
+class PostCommentSerializer(serializers.ModelSerializer):
+    user = ProfileSerializer(read_only=True, required=False)
+    post = PostSerializer(read_only=True, required=False)
+
+    class Meta:
+        model = PostComment
+        fields = ('id', 'content', 'created_at', 'updated_at', 'post', 'user',)
+        read_only_fields = ('created_at', 'updated_at',)
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('user')
+        return queryset
+
+
+ALLOWED_FILE_TYPES = ('image', 'audio', 'video',)
+ALLOWED_IMAGE_TYPES = ('image/jpeg', 'image/gif', 'image/png',
+                       'image/bmp', 'image/webp',)
+ALLOWED_AUDIO_TYPES = ('audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg',)
+ALLOWED_VIDEO_TYPES = ('video/mp4', 'video/webm', 'video/ogg',)
+
+
+
