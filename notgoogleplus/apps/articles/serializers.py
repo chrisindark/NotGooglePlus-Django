@@ -19,8 +19,8 @@ class ArticleSerializer(serializers.ModelSerializer):
     user = ProfileSerializer(read_only=True, required=False)
     # title = serializers.CharField(required=False)
     # content = serializers.CharField(required=False)
-    description = serializers.CharField(required=False)
     # slug = serializers.SlugField(required=False)
+    description = serializers.CharField(required=False)
     tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
 
     class Meta:
@@ -44,7 +44,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         return article
 
     def update(self, instance, validated_data):
-        # author = self.context.get('author', None)
+        # author = self.context.get('user', None)
         tags = validated_data.pop('tags', [])
         instance.save()
         instance.tags.clear()

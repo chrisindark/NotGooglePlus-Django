@@ -5,7 +5,7 @@ from django.conf import settings
 # Create your models here.
 class Post(models.Model):
     user = models.ForeignKey('profiles.Profile', related_name='posts', on_delete=models.CASCADE)
-    file = models.OneToOneField('posts.File', related_name='post_file', null=True)
+    file = models.OneToOneField('posts.File', related_name='post_file', null=True, blank=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
