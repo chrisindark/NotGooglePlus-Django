@@ -63,8 +63,11 @@ class ProfileFollowSerializer(ProfileSerializer):
     follow = serializers.BooleanField(required=True, write_only=True)
 
     class Meta(ProfileSerializer.Meta):
-        fields = ('first_name', 'last_name', 'nickname', 'tagline',
-                  'bio', 'dob', 'gender', 'following', 'follow', 'user',)
+        fields = (
+            'first_name', 'last_name', 'nickname', 'tagline',
+            'bio', 'dob', 'gender', 'follow', 'user',
+            # 'following',
+        )
 
     def validate(self, data):
         user = self.context.get('request').user
