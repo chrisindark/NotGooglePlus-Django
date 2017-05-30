@@ -29,16 +29,17 @@ class ProfileSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(required=False, allow_blank=True, max_length=1000)
     dob = serializers.DateField(required=False, allow_null=True)
     gender = serializers.ChoiceField(required=False, allow_blank=True, choices=GENDER_CHOICES)
-    following = serializers.SerializerMethodField()
+    # following = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields = ('id', 'first_name', 'last_name',
-                  'nickname', 'tagline',
-                  'bio', 'dob', 'gender',
-                  'username',
-                  # 'following',
-                  )
+        fields = (
+            'id', 'first_name', 'last_name',
+            'nickname', 'tagline',
+            'bio', 'dob', 'gender',
+            'username',
+            # 'following',
+        )
         # read_only_fields = ('username',)
 
     # def get_user(self, instance):
