@@ -7,7 +7,7 @@ from django.utils.text import slugify
 from .models import Article
 
 
-MAXIMUM_SLUG_LENGTH = 255
+MAXIMUM_SLUG_LENGTH = 50
 
 
 @receiver(pre_save, sender=Article)
@@ -18,6 +18,9 @@ def add_slug_before_article_save(sender, **kwargs):
 
     slug = slugify(instance.title)
     unique = binascii.hexlify(os.urandom(20)).decode()
+
+    print(len(slug))
+    print(len(unique))
 
     if len(slug) > MAXIMUM_SLUG_LENGTH:
         slug = slug[:MAXIMUM_SLUG_LENGTH]
