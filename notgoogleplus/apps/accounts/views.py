@@ -8,6 +8,8 @@ from .serializers import *
 from .filters import *
 from .permissions import *
 
+from notgoogleplus.apps.core.renderers import CustomJSONRenderer
+
 
 class AccountPagination(pagination.PageNumberPagination):
     page_size = 10
@@ -68,8 +70,8 @@ class AccountDetailView(generics.RetrieveUpdateDestroyAPIView):
     #     return response
 
 
-class AuthenticatedUserView(views.APIView):
-    permission_classes = (permissions.IsAuthenticated,)
+class AuthenticatedAccountView(views.APIView):
+    permission_classes = (permissions.IsAuthenticated, IsAccountOwner,)
     serializer_class = AccountSerializer
 
     def get(self, request):
@@ -117,6 +119,7 @@ class LoginView(views.APIView):
     """
     permission_classes = (IsNotAuthenticated,)
     serializer_class = LoginSerializer
+    renderer_classes = (CustomJSONRenderer,)
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)

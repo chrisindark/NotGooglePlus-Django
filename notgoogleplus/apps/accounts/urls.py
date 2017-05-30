@@ -25,7 +25,7 @@ urlpatterns = (
     url(r'^api/v1/auth/password/reset/confirm/$', PasswordResetConfirmView.as_view(),
         name='password-reset-confirm'),
 
-    url(r'^api/v1/auth/me/$', AuthenticatedUserView.as_view(), name='account-me'),
+    url(r'^api/v1/auth/me/$', AuthenticatedAccountView.as_view(), name='account-me'),
 
     # url('^.*$', IndexView.as_view(), name='index'),
 )

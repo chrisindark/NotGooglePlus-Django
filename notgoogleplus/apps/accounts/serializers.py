@@ -24,7 +24,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ('id', 'username',)
+        fields = ('id', 'username', 'email',)
         read_only_fields = ('email', 'is_staff', 'created_at', 'updated_at',)
 
     def validate(self, data):
@@ -34,7 +34,8 @@ class AccountSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'username': 'Username already exists. Please try another.'
             })
-        return username
+
+        return data
 
 
 class AccountRegistrationSerializer(serializers.ModelSerializer):

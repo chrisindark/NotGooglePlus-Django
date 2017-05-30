@@ -4,6 +4,7 @@ from .models import *
 
 
 class ArticleFilter(django_filters.FilterSet):
+    username = django_filters.CharFilter(name="user__user__username")
     o = django_filters.OrderingFilter(
         fields=(
             ('created_at', 'created_at'),
@@ -13,7 +14,6 @@ class ArticleFilter(django_filters.FilterSet):
     class Meta:
         model = Article
         fields = (
-            'user__user__username',
             'created_at',
         )
 

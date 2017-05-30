@@ -11,7 +11,7 @@ class IsAccountOwner(permissions.BasePermission):
 class IsOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user:
-            return obj.user == request.user
+            return obj.user.user == request.user
         return False
 
 

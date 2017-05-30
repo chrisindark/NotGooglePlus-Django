@@ -12,24 +12,26 @@ MAXIMUM_SLUG_LENGTH = 255
 
 @receiver(pre_save, sender=Article)
 def add_slug_before_article_save(sender, **kwargs):
-    if kwargs.get('created', False):
-        instance = kwargs.get('instance')
-        slug = slugify(instance.title)
-        unique = binascii.hexlify(os.urandom(20)).decode()
+    instance = kwargs.get('instance')
+    if instance.slug:
+        return
 
-        if len(slug) > MAXIMUM_SLUG_LENGTH:
-            slug = slug[:MAXIMUM_SLUG_LENGTH]
+    slug = slugify(instance.title)
+    unique = binascii.hexlify(os.urandom(20)).decode()
 
-        while len(slug + '-' + unique) > MAXIMUM_SLUG_LENGTH:
-            parts = slug.split('-')
+    if len(slug) > MAXIMUM_SLUG_LENGTH:
+        slug = slug[:MAXIMUM_SLUG_LENGTH]
 
-            if len(parts) is 1:
-                # To append the unique string we must
-                # arbitrarly remove `len(unique)` characters from the end of
-                # `slug`. Subtract one to account for extra hyphen.
-                slug = slug[:MAXIMUM_SLUG_LENGTH - len(unique) - 1]
-            else:
-                slug = '-'.join(parts[:-1])
-        print(slug)
-        print(unique)
-        instance.slug = slug + '-' + unique
+    while len(slug + '-' + unique) > MAXIMUM_SLUG_LENGTH:
+        parts = slug.split('-')
+
+        if len(parts) is 1:
+            # To append the unique string we must
+            # arbitrarly remove `len(unique)` characters from the end of
+            # `slug`. Subtract one to account for extra hyphen.
+            slug = slug[:MAXIMUM_SLUG_LENGTH - len(unique) - 1]
+        else:
+            slug = '-'.join(parts[:-1])
+    print(slug)
+    print(unique)
+    instance.slug = slug + '-' + unique

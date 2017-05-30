@@ -1,9 +1,23 @@
 #!/usr/bin/env python
 import os
 import sys
+from dotenv import load_dotenv
+
+
+def read_env():
+    dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+    try:
+        load_dotenv(dotenv_path)
+    except IOError:
+        raise
+        pass
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "notgoogleplus.settings.development")
+
+    # load environment variables from .env file
+    read_env()
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError:

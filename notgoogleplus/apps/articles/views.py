@@ -18,7 +18,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ArticlePagination(pagination.PageNumberPagination):
-    page_size = 10
+    # page_size = 20
     page_size_query_param = 'page_size'
     # max_page_size = 1000
 
@@ -35,6 +35,13 @@ class ArticleViewSet(viewsets.ModelViewSet):
             return (permissions.AllowAny(),)
         return (permissions.IsAuthenticated(), IsOwner(),)
 
+    def get_queryset(self):
+        # Set up eager loading to avoid N + 1 selects
+        queryset = self.queryset
+        queryset = self.get_serializer_class().setup_eager_loading(queryset)
+        queryset = self.get_serializer_class().annotate_comments_count(queryset)
+        return queryset
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user.profile)
 
@@ -47,13 +54,12 @@ class ArticleCommentMixin(generics.GenericAPIView):
     queryset = ArticleComment.objects.all()
     serializer_class = ArticleCommentSerializer
     pagination_class = ArticleCommentPagination
+    filter_class = ArticleCommentFilter
 
     def get_queryset(self):
         queryset = super(ArticleCommentMixin, self).get_queryset()
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
-        if self.kwargs.get('pk'):
-            return queryset.filter(pk=self.kwargs.get('pk'))
-        return queryset.filter(post__id=self.kwargs.get('article__id'))
+        return queryset.filter(article__id=self.kwargs.get('article__id'))
 
 
 class ArticleCommentListCreateView(ArticleCommentMixin, generics.ListCreateAPIView):
@@ -64,9 +70,11 @@ class ArticleCommentListCreateView(ArticleCommentMixin, generics.ListCreateAPIVi
 
     def perform_create(self, serializer):
         article = Article.objects.get(id=self.kwargs.get('article__id'))
-        serializer.save(user=self.request.user, post=article)
+        serializer.save(user=self.request.user.profile, article=article)
 
 
 class ArticleCommentDetailView(ArticleCommentMixin, generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return (permissions.AllowAny(),)
         return (permissions.IsAuthenticated(), IsOwner(),)

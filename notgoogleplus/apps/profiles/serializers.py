@@ -16,9 +16,9 @@ GENDER_CHOICES = (
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    # user = AccountSerializer(read_only=True, required=False)
     # user = serializers.SerializerMethodField()
-    user = AccountSerializer(read_only=True, required=False)
-    # username = serializers.CharField(source='user.username', required=False)
+    username = serializers.CharField(source='user.username', read_only=True, required=False)
     first_name = serializers.CharField(required=False, allow_blank=True,
                                        validators=[ALPHABET], max_length=20)
     last_name = serializers.CharField(required=False, allow_blank=True,
@@ -29,18 +29,22 @@ class ProfileSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(required=False, allow_blank=True, max_length=1000)
     dob = serializers.DateField(required=False, allow_null=True)
     gender = serializers.ChoiceField(required=False, allow_blank=True, choices=GENDER_CHOICES)
-    following = serializers.SerializerMethodField()
+    # following = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields = ('id', 'first_name', 'last_name', 'nickname', 'tagline',
-                  'bio', 'dob', 'gender', 'following', 'user',)
+        fields = ('id', 'first_name', 'last_name',
+                  'nickname', 'tagline',
+                  'bio', 'dob', 'gender',
+                  'username',
+                  # 'following',
+                  )
         # read_only_fields = ('username',)
 
     # def get_user(self, instance):
         # request = self.context.get('request')
         # if request.user == instance:
-            # serializer = AccountSerializer(instance.user)
+            # serializer = AccountSerializer(instance.user, context={'request': request})
             # return serializer.data
 
     def get_following(self, instance):

@@ -1,5 +1,7 @@
 from django.db import models
 
+from notgoogleplus.apps.core.models import TimestampedModel
+
 
 GENDER_CHOICES = (
     ('M', 'Male'),
@@ -8,7 +10,7 @@ GENDER_CHOICES = (
 )
 
 
-class Profile(models.Model):
+class Profile(TimestampedModel):
     user = models.OneToOneField('accounts.Account', on_delete=models.CASCADE, related_name='profile')
     first_name = models.CharField(max_length=20, blank=True, default='')
     last_name = models.CharField(max_length=20, blank=True, default='')
@@ -17,8 +19,8 @@ class Profile(models.Model):
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, default='')
     tagline = models.CharField(max_length=140, blank=True, default='')
     bio = models.TextField(max_length=1000, blank=True, default='')
-    # image = models.URLField(blank=True)
     follows = models.ManyToManyField('self', related_name='followed_by', symmetrical=False)
+    # image = models.URLField(blank=True)
 
     def __str__(self):
         return self.user.email

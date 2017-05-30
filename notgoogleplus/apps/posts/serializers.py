@@ -3,17 +3,25 @@ from django.utils.crypto import get_random_string
 from rest_framework import serializers
 
 from notgoogleplus.apps.profiles.serializers import ProfileSerializer
+from notgoogleplus.apps.accounts.serializers import AccountSerializer
 
 from .models import *
 
 
 class FileSerializer(serializers.ModelSerializer):
-    # user = ProfileSerializer(read_only=True, required=False)
+    user = ProfileSerializer(read_only=True, required=False)
 
     class Meta:
         model = File
-        fields = ('id', 'file', 'name', 'file_type', 'file_content_type', 'size', 'created_at', 'updated_at', 'user',)
-        read_only_fields = ('name', 'file_type', 'file_content_type', 'size', 'created_at', 'updated_at',)
+        fields = (
+            'id', 'file', 'name', 'file_type', 'file_content_type',
+            'size', 'created_at', 'updated_at',
+            'user',
+        )
+        read_only_fields = (
+            'name', 'file_type', 'file_content_type',
+            'size', 'created_at', 'updated_at',
+        )
 
     def validate(self, data):
         if len(data['file'].name) > 75:
@@ -34,7 +42,13 @@ class FileSerializer(serializers.ModelSerializer):
                 ', '.join(ALLOWED_VIDEO_TYPES))})
         data['file_content_type'] = data['file'].content_type
         data['size'] = data['file'].size
+
         return data
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('user', 'user__user')
+        return queryset
 
     @staticmethod
     def set_filename(file):
@@ -52,16 +66,39 @@ class FileSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     user = ProfileSerializer(read_only=True, required=False)
-    file = FileSerializer(required=False)
+    # user__user = AccountSerializer(read_only=True, required=False)
+    file = FileSerializer(required=False, allow_null=True)
+    comments_count = serializers.IntegerField(read_only=True, required=False)
+    # comments_count = serializers.SerializerMethodField(read_only=True, required=False)
 
     class Meta:
         model = Post
-        fields = ('id', 'content', 'created_at', 'updated_at', 'user', 'file',)
+        fields = (
+            'id', 'title', 'content', 'created_at', 'updated_at',
+            'file',
+            'user',
+            # 'user__user',
+            'comments_count',
+        )
         read_only_fields = ('created_at', 'updated_at',)
+
+    # @staticmethod
+    # def get_comments_count(post):
+    #     return post.get_comments_count()
+
+    # def get_user(self, instance):
+    #     request = self.context.get('request')
+    #     serializer = ProfileSerializer(instance.user, context={'request': request})
+    #     return serializer.data
 
     @staticmethod
     def setup_eager_loading(queryset):
-        queryset = queryset.select_related('user')
+        queryset = queryset.select_related('file', 'user', 'user__user')
+        return queryset
+
+    @staticmethod
+    def annotate_comments_count(queryset):
+        queryset = queryset.annotate(comments_count=models.Count('post_comments', distinct=True))
         return queryset
 
     # def to_representation(self, obj):
@@ -75,7 +112,8 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostCommentSerializer(serializers.ModelSerializer):
     user = ProfileSerializer(read_only=True, required=False)
-    post = PostSerializer(read_only=True, required=False)
+    # post = PostSerializer(read_only=True, required=False)
+    post = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
 
     class Meta:
         model = PostComment
@@ -84,7 +122,7 @@ class PostCommentSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def setup_eager_loading(queryset):
-        queryset = queryset.select_related('user')
+        queryset = queryset.select_related('user', 'user__user')
         return queryset
 
 
