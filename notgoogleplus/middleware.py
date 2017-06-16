@@ -5,6 +5,8 @@ import logging
 
 from django.db import connection
 
+from notgoogleplus.apps.core.models import AppModel
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,7 @@ class QueryCountDebugMiddleware(object):
 
     def __call__(self, request):
         # Code to be executed for each request before
-        # the view (and later middleware) are called.
+        # the view (and later middleware) is called.
         response = self.get_response(request)
 
         # Code to be executed for each request/response after
@@ -43,4 +45,30 @@ class QueryCountDebugMiddleware(object):
 
             logger.debug('%s queries run, total %s seconds' % (len(connection.queries), total_time))
             # print('%s queries run, total %s seconds' % (len(connection.queries), total_time))
+        return response
+
+
+class AppVersionMiddleware(object):
+    """
+    This middleware will add application version to the
+    headers of every response object.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Code to be executed for each request before
+        # the view (and later middleware) is called.
+        response = self.get_response(request)
+
+        # Code to be executed for each request/response after
+        # the view is called.
+        app_model = AppModel.objects.first()
+        response['App-Version'] = app_model.app_version
+        # if request.session.get('app_version', False):
+        #     response['App-Version'] = request.session.get('app_version')
+        # else:
+        #     request.session['app_version'] = app_model.app_version
+        #     response['App-Version'] = request.session.get('app_version')
+
         return response

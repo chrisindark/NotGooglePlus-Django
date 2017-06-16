@@ -1,4 +1,5 @@
 from rest_framework import permissions, viewsets, generics, pagination
+from rest_framework.exceptions import NotFound
 
 from notgoogleplus.apps.accounts.permissions import *
 
@@ -123,4 +124,8 @@ class FileViewSet(viewsets.ModelViewSet):
             return queryset.filter(user__user__username=self.kwargs.get('username'))
 
     def perform_create(self, serializer):
+        try:
+            user = Profile.objects.get(user__username=self.kwargs.get('username'))
+        except File.DoesNotExist:
+            raise NotFound()
         serializer.save(user=self.request.user.profile)

@@ -1,4 +1,5 @@
 from rest_framework import permissions, viewsets, generics, mixins, pagination
+from rest_framework.decorators import list_route
 
 from notgoogleplus.apps.accounts.permissions import *
 
@@ -44,6 +45,23 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user.profile)
+
+
+class ArticleIdListView(generics.ListAPIView):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+    pagination_class = ArticlePagination
+    filter_class = ArticleFilter
+
+    # def get_permissions(self):
+        # if self.request.method in permissions.SAFE_METHODS:
+            # return (permissions.AllowAny(),)
+        # pass
+
+    def get_queryset(self):
+        queryset = self.queryset.values_list('id', flat=True)
+
+        return queryset
 
 
 class ArticleCommentPagination(ArticlePagination):

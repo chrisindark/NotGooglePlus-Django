@@ -6,14 +6,11 @@ from notgoogleplus.settings.common import *
 SECRET_KEY = 'v&s0ym!t$uc^vdufh8(tpac7c*=xyu#am8e32)e1f0bnr*ys(b'
 
 ALLOWED_HOSTS = (
-    'localhost',
-    '127.0.0.1',
-    'dev.notgoogleplus.com',
     'ancient-tor-16694.herokuapp.com',
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 LOGGING = {
     'disable_existing_loggers': False,
@@ -72,8 +69,6 @@ INSTALLED_APPS += (
     'django_extensions',
     'rest_framework_swagger',
 )
-
-MIDDLEWARE = ('notgoogleplus.middleware.QueryCountDebugMiddleware',) + MIDDLEWARE
 
 DATABASES = {}
 
