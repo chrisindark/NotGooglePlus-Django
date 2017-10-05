@@ -1,9 +1,9 @@
 *.py~
 *.pyc
 *.pyc~
-.idea
 __pycache__
 .env
-production.py
 media
 static
+.idea
+.vscode

@@ -14,7 +14,7 @@ class AccountManager(BaseUserManager):
     All we have to do is override the `create_user` function which we will use
     to create `Account` objects.
     """
-    def create_user(self, username, email, password=None):
+    def create_user(self, username, email, password=None, **kwargs):
         if not email:
             raise ValueError('Users must have a valid email address.')
 
@@ -23,26 +23,30 @@ class AccountManager(BaseUserManager):
 
         account = self.model(
             email=self.normalize_email(email),
-            username=username
+            username=username,
+            **kwargs
         )
         account.set_password(password)
         account.save()
 
         return account
 
-    def create_superuser(self, username, email, password):
+    def create_superuser(self, username, email, password, **kwargs):
         """
       Create and return a `User` with superuser powers.
 
-      Superuser powers means that this use is an admin that can do anything
+      Superuser powers means that this user is an admin that can do anything
       they want.
       """
-        account = self.create_user(username, email, password)
-        account.is_superuser = True
-        account.is_staff = True
-        account.save()
+        kwargs.setdefault('is_staff', True)
+        kwargs.setdefault('is_superuser', True)
 
-        return account
+        if kwargs.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if kwargs.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(username, email, password, **kwargs)
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
@@ -66,6 +70,39 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         return self.username
 
+    def is_admin(self):
+        "Is the user an admin?"
+        # Simplest possible answer: All superusers are admins
+        return self.is_superuser
+
+    @property
+    def token(self):
+        """
+        Allows us to get a user's token by calling `user.token` instead of
+        `user.generate_jwt_token().
+        The `@property` decorator above makes this possible. `token` is called
+        a "dynamic property".
+        """
+        return self._generate_jwt_token()
+
+    def _generate_jwt_token(self):
+        """
+        Generates a JSON Web Token that stores this user's ID and has an expiry
+        date set to 60 days into the future.
+        """
+        import jwt
+        from datetime import datetime, timedelta
+        from django.conf import settings
+
+        dt = datetime.now() + timedelta(days=60)
+
+        token = jwt.encode({
+            'id': self.pk,
+            'exp': int(dt.strftime('%s')),
+        }, settings.SECRET_KEY, algorithm='HS256')
+
+        return token.decode('utf-8')
+
     def __str__(self):
         return self.email
 
@@ -84,3 +121,12 @@ ACCOUNT_PERMISSION_CHOICES = (
 #     user = models.ForeignKey('Account')
 #     email = models.CharField(max_length=3, choices=ACCOUNT_PERMISSION_CHOICES,
 #                              default=ACCOUNT_PERMISSION_CHOICES[0][0])
+
+# class OauthAccount(models.Model):
+#     user = models.ForeignKey('accounts.Account', related_name='oauth', on_delete=models.CASCADE)
+#     provider = models.CharField(max_length=32)
+#     access_token = models.CharField(max_length=255)
+#     refresh_token = models.CharField(max_length=255)
+#     id_token = models.CharField(max_length=255)
+#     expires_in = models.DateTimeField()
+#     token_type = models.CharField(max_length=255)

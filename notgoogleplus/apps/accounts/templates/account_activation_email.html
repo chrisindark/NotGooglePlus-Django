@@ -1,0 +1,26 @@
+{% load i18n %}
+{% autoescape off %}
+<html>
+<body>
+
+{% blocktrans %}
+<p>Confirm Your {{ site_name }} Account.
+You're receiving this email because you created a user account at {{ site_name }}.
+Please confirm your email account to continue.
+</p>
+{% endblocktrans %}
+
+<p>{% trans "Please go to the following page to confirm email:" %}</p>
+{% block reset_link %}
+<p><a href="{{ protocol }}://{{ domain }}/{{ url }}">{{ protocol }}://{{ domain }}/{{ url }}/{{ token }}</a></p>
+{% endblock %}
+
+<p>{% trans "Thanks for using our site!" %}</p>
+
+{% blocktrans %}
+<p>The {{ site_name }} team</p>
+{% endblocktrans %}
+
+{% endautoescape %}
+</body>
+</html>

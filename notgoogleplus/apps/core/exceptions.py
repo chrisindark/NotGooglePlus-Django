@@ -1,4 +1,14 @@
+from django.utils.translation import ugettext_lazy as _
+
+from rest_framework.exceptions import APIException
+from rest_framework.status import HTTP_503_SERVICE_UNAVAILABLE
 from rest_framework.views import exception_handler
+
+
+class ServiceUnavailable(APIException):
+    status_code = HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = _('Service temporarily unavailable, try again later.')
+    default_code = 'service_unavailable'
 
 
 def custom_exception_handler(exc, context):
@@ -41,7 +51,7 @@ def _handle_generic_error(exc, context, response):
 
     # The array of validation errors is convert to string
     if response is not None:
-        for key, value in response.data.iteritems():
+        for key, value in response.data.items():
             if isinstance(value, list):
                 response.data[key] = value[0]
 

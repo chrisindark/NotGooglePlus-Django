@@ -8,4 +8,3 @@ class IsOwner(permissions.BasePermission):
         if request.user:
             return obj.user == request.user
         return False
-

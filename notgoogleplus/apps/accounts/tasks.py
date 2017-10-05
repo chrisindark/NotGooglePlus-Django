@@ -1,4 +1,5 @@
 from notgoogleplus.celery import app
+
 from notgoogleplus.apps.profiles.models import Profile
 
 from .models import Account

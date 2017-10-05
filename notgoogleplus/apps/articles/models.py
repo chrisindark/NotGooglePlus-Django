@@ -40,3 +40,33 @@ class ArticleComment(TimestampedModel):
 
     def __repr__(self):
         return '<ArticleComment: {content}>'.format(content=self.content)
+
+
+class ArticleLike(TimestampedModel):
+    user = models.ForeignKey('profiles.Profile', related_name='article_likes', on_delete=models.CASCADE)
+    article = models.ForeignKey('Article', related_name='article_likes', on_delete=models.CASCADE)
+    liked = models.NullBooleanField(default=None)
+
+    class Meta:
+        unique_together = (('user', 'article',),)
+
+    def __str__(self):
+        return self.article.content
+
+    def __repr__(self):
+        return '<Like: {0}{1}>'.format(self.article, self.liked)
+
+
+class ArticleCommentLike(TimestampedModel):
+    user = models.ForeignKey('profiles.Profile', related_name='article_comment_l', on_delete=models.CASCADE)
+    article_comment = models.ForeignKey('ArticleComment', related_name='article_comment_l', on_delete=models.CASCADE)
+    liked = models.NullBooleanField(default=None)
+
+    class Meta:
+        unique_together = (('user', 'article_comment',),)
+
+    def __str__(self):
+        return self.article_comment.content
+
+    def __repr__(self):
+        return '<ArticleCommentLike: {0}{1}>'.format(self.article_comment, self.liked)

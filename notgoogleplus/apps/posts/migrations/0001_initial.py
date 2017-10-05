@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
-                ('file', models.FileField(max_length=255, upload_to=notgoogleplus.apps.posts.models.file_directory_path)),
+                ('file', models.FileField(max_length=255, upload_to=notgoogleplus.apps.posts.models.file_path_fn)),
                 ('file_type', models.CharField(max_length=5)),
                 ('file_content_type', models.CharField(max_length=20)),
                 ('size', models.BigIntegerField(default=0)),

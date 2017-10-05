@@ -1,0 +1,6 @@
+{% load i18n %}
+{% autoescape off %}
+{% blocktrans %}
+Account confirmation for {{ site_name }}
+{% endblocktrans %}
+{% endautoescape %}

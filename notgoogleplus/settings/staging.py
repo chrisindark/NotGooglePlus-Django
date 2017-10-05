@@ -6,6 +6,7 @@ from notgoogleplus.settings.common import *
 SECRET_KEY = 'v&s0ym!t$uc^vdufh8(tpac7c*=xyu#am8e32)e1f0bnr*ys(b'
 
 ALLOWED_HOSTS = (
+    'dev.ngp.server.com',
     'ancient-tor-16694.herokuapp.com',
 )
 
@@ -73,6 +74,7 @@ INSTALLED_APPS += (
 DATABASES = {}
 
 if os.environ.get('NG_HEROKU_ENV'):
+    import dj_database_url
     DATABASES['default'] = dj_database_url.config(conn_max_age=500)
 else:
     DATABASES['default'] = {
@@ -84,6 +86,9 @@ else:
         'PORT': get_env_var('NG_DB_PORT'),
     }
 
+STATIC_ROOT = os.path.abspath(os.path.join('/var/www/html/notgoogleplus/staging', STATIC_PATH))
+MEDIA_ROOT = os.path.abspath(os.path.join('/var/www/html/notgoogleplus/staging', MEDIA_PATH))
+
 CORS_ORIGIN_WHITELIST = ()
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_EXPOSE_HEADERS = (
@@ -93,23 +98,24 @@ CORS_EXPOSE_HEADERS = (
     'App-Version',
 )
 
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+REDIS_URL = 'redis://127.0.0.1:6379'
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'asgi_redis.RedisChannelLayer',
-#         'CONFIG': {
-#             'hosts': [REDIS_URL],
-#         },
-#         'ROUTING': 'notgoogleplus.routing.channel_routing',
-#     }
-# }
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'asgi_redis.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+        },
+        'ROUTING': 'notgoogleplus.routing.channel_routing',
+    }
+}
 
 # CELERY SETTINGS
 BROKER_URL = 'redis://localhost:6379'
@@ -118,19 +124,3 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
-
-PASSWORD_RESET_CONFIRM_URL = '#/password/reset/confirm'
-PASSWORD_RESET_EMAIL_SUBJECT = 'account_password_reset_subject.txt'
-PASSWORD_RESET_EMAIL_TEMPLATE = 'account_password_reset_email.html'
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-# EMAIL SETTINGS
-# EMAIL_USE_TLS = True
-# EMAIL_HOST = get_env_var('NG_EMAIL_HOST')
-# EMAIL_PORT = get_env_var('NG_EMAIL_PORT')
-# EMAIL_HOST_USER = get_env_var('NG_EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = get_env_var('NG_EMAIL_HOST_PASSWORD')
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-FILE_UPLOAD_PATH = 'uploads/'

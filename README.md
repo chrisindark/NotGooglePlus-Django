@@ -35,9 +35,20 @@ Collect static files from each of your applications into a single location:
 python manage.py collectstatic
 ```
 
-Start the development server
+Start the development http server
 ```bash
-python manage.py runserver
+python manage.py runserver --settings=notgoogleplus.settings.development
 ```
 
-Open your web browser and go to `localhost:8000/`
+Open your web browser and go to `127.0.0.1:8000/`
+
+Start the development daphne server for websocket interface server
+```bash
+daphne -b 127.0.0.1 -p 8001 notgoogleplus.asgi:channel_layer
+```
+
+Start the worker servers to process websocket requests
+```bash
+python manage.py runworker --settings=notgoogleplus.settings.development
+```
+

@@ -1,7 +1,9 @@
 from rest_framework import permissions, viewsets, generics, mixins, pagination
 from rest_framework.decorators import list_route
+from rest_framework.response import Response
 
 from notgoogleplus.apps.accounts.permissions import *
+from notgoogleplus.apps.core.views import *
 
 from .models import *
 from .serializers import *
@@ -41,27 +43,38 @@ class ArticleViewSet(viewsets.ModelViewSet):
         queryset = self.queryset
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         queryset = self.get_serializer_class().annotate_comments_count(queryset)
+        queryset = self.get_serializer_class().annotate_likes_dislikes_count(queryset)
         return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user.profile)
 
 
-class ArticleIdListView(generics.ListAPIView):
+class ArticleIdListView(ModelIdListMixin):
     queryset = Article.objects.all()
-    serializer_class = ArticleSerializer
     pagination_class = ArticlePagination
     filter_class = ArticleFilter
 
-    # def get_permissions(self):
-        # if self.request.method in permissions.SAFE_METHODS:
-            # return (permissions.AllowAny(),)
-        # pass
+
+class ArticleLikeMixin(generics.GenericAPIView):
+    queryset = ArticleLike.objects.all()
+    serializer_class = ArticleLikeSerializer
 
     def get_queryset(self):
-        queryset = self.queryset.values_list('id', flat=True)
+        queryset = super(ArticleLikeMixin, self).get_queryset()
+        queryset = self.get_serializer_class().setup_eager_loading(queryset)
+        return queryset.filter(article__id=self.kwargs.get('article__id'))
 
-        return queryset
+
+class ArticleLikeListCreateView(ArticleLikeMixin, generics.ListCreateAPIView):
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return (permissions.AllowAny(),)
+        return (permissions.IsAuthenticated(),)
+
+    def perform_create(self, serializer):
+        article = Article.objects.get(id=self.kwargs.get('article__id'))
+        serializer.save(user=self.request.user.profile, article=article)
 
 
 class ArticleCommentPagination(ArticlePagination):
@@ -79,20 +92,49 @@ class ArticleCommentMixin(generics.GenericAPIView):
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         return queryset.filter(article__id=self.kwargs.get('article__id'))
 
-
-class ArticleCommentListCreateView(ArticleCommentMixin, generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:
             return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(),)
+        return (permissions.IsAuthenticated(), IsOwner(),)
 
     def perform_create(self, serializer):
         article = Article.objects.get(id=self.kwargs.get('article__id'))
         serializer.save(user=self.request.user.profile, article=article)
 
 
+class ArticleCommentListCreateView(ArticleCommentMixin, generics.ListCreateAPIView):
+    pass
+    # def get_permissions(self):
+    #     if self.request.method in permissions.SAFE_METHODS:
+    #         return (permissions.AllowAny(),)
+    #     return (permissions.IsAuthenticated(),)
+
+
 class ArticleCommentDetailView(ArticleCommentMixin, generics.RetrieveUpdateDestroyAPIView):
+    pass
+    # def get_permissions(self):
+    #     if self.request.method in permissions.SAFE_METHODS:
+    #         return (permissions.AllowAny(),)
+    #     return (permissions.IsAuthenticated(), IsOwner(),)
+
+
+class ArticleCommentLikeListCreateView(generics.ListCreateAPIView):
+    queryset = ArticleCommentLike.objects.all()
+    serializer_class = ArticleCommentLikeSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        queryset = self.get_serializer_class().setup_eager_loading(queryset)
+        return queryset.filter(
+            article_comment__article__id=self.kwargs.get('article__id'),
+            article_comment__id=self.kwargs.get('pk')
+        )
+
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:
             return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(), IsOwner(),)
+        return (permissions.IsAuthenticated(),)
+
+    def perform_create(self, serializer):
+        article_comment = ArticleComment.objects.get(id=self.kwargs.get('pk'))
+        serializer.save(user=self.request.user.profile, article_comment=article_comment)

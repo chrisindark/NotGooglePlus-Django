@@ -1,0 +1,61 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
+from django.utils.translation import ugettext as _
+
+REQUEST_STATUS_PENDING = 1
+REQUEST_STATUS_ACCEPTED = 2
+REQUEST_STATUS_REJECTED = 3
+REQUEST_STATUS_DELETED = 4
+REQUEST_STATUS_CANCELED = 5
+REQUEST_STATUS_CONFIRMED = 6
+REQUEST_STATUS_FINISHED = 7
+REQUEST_STATUS_PAID_OUT = 8
+REQUEST_STATUS_REFUNDED = 9
+
+REQUEST_STATUS_CHOICES = [
+    (REQUEST_STATUS_PENDING, _('Pending')),
+    (REQUEST_STATUS_ACCEPTED, _('Accepted')),
+    (REQUEST_STATUS_REJECTED, _('Rejected')),
+    (REQUEST_STATUS_CANCELED, _('Canceled')),
+    (REQUEST_STATUS_DELETED, _('Deleted')),
+    (REQUEST_STATUS_CONFIRMED, _('Confirmed')),
+    (REQUEST_STATUS_FINISHED, _('Finished')),
+    (REQUEST_STATUS_PAID_OUT, _('Paid out')),
+    (REQUEST_STATUS_REFUNDED, _('Refunded')),
+]
+
+
+PAYMENT_STATUS_PENDING = 1
+PAYMENT_STATUS_INITIATED = 2
+PAYMENT_STATUS_CHARGED = 3
+PAYMENT_STATUS_FAILED = 4
+PAYMENT_STATUS_REFUNDED = 5
+PAYMENT_STATUS_CONFIRMED = 6
+PAYMENT_STATUS_COMPLETED = 7
+PAYMENT_STATUS_CHOICES = (
+    (PAYMENT_STATUS_PENDING, _('Payment pending')),
+    (PAYMENT_STATUS_INITIATED, _('Payment initiated')),
+    (PAYMENT_STATUS_CHARGED, _('Payment payed by the payer')),
+    (PAYMENT_STATUS_FAILED, _('Payment failed')),
+    (PAYMENT_STATUS_REFUNDED, _('Payment refunded')),
+    (PAYMENT_STATUS_CONFIRMED, _('Payment confirmed')),
+    (PAYMENT_STATUS_COMPLETED, _('Payment completed')),
+)
+
+CREDIT_IN = 1
+CREDIT_OUT = 2
+
+CREDIT_TYPE_CHOICES = (
+    (CREDIT_IN, _('Credit Added')),
+    (CREDIT_OUT, _('Credit Spent'))
+)
+
+OBJECT_TYPE_CLASS = 1
+OBJECT_TYPE_CONTENT = 2
+
+OBJECT_TYPE_CHOICE = (
+    (OBJECT_TYPE_CLASS, _('class')),
+    (OBJECT_TYPE_CONTENT, _('content'))
+)

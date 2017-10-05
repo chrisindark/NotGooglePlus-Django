@@ -29,6 +29,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(required=False, allow_blank=True, max_length=1000)
     dob = serializers.DateField(required=False, allow_null=True)
     gender = serializers.ChoiceField(required=False, allow_blank=True, choices=GENDER_CHOICES)
+    image = serializers.CharField(allow_blank=True, required=False)
     # following = serializers.SerializerMethodField()
 
     class Meta:
@@ -37,7 +38,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'id', 'first_name', 'last_name',
             'nickname', 'tagline',
             'bio', 'dob', 'gender',
-            'username',
+            'username', 'image',
             # 'following',
         )
         # read_only_fields = ('username',)

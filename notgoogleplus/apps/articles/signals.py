@@ -1,4 +1,5 @@
-import os, binascii
+import os
+import binascii
 
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -30,7 +31,7 @@ def add_slug_before_article_save(sender, **kwargs):
 
         if len(parts) is 1:
             # To append the unique string we must
-            # arbitrarly remove `len(unique)` characters from the end of
+            # arbitrarily remove `len(unique)` characters from the end of
             # `slug`. Subtract one to account for extra hyphen.
             slug = slug[:MAXIMUM_SLUG_LENGTH - len(unique) - 1]
         else:

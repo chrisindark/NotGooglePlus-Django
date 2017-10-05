@@ -1,11 +1,16 @@
 import django_filters
 
-from .models import *
+from notgoogleplus.apps.core.filters import NumberInFilter
+
+from .models import (
+    FileUpload, Post, PostLike, PostComment, PostCommentLike
+)
 
 
 class PostFilter(django_filters.FilterSet):
     # user_id = django_filters.CharFilter(name="user__id")
     # user_email = django_filters.CharFilter(name="user__user__email")
+    ids = NumberInFilter(name="id", lookup_expr='in')
     username = django_filters.CharFilter(name="user__user__username")
     o = django_filters.OrderingFilter(
         # tuple-mapping retains order
@@ -35,6 +40,6 @@ class PostCommentFilter(django_filters.FilterSet):
         )
 
 
-class FileFilter(django_filters.FilterSet):
+class FileUploadFilter(django_filters.FilterSet):
     class Meta(PostFilter.Meta):
-        model = File
+        model = FileUpload

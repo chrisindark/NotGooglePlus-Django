@@ -6,21 +6,22 @@ from notgoogleplus.apps.profiles.serializers import ProfileSerializer
 from notgoogleplus.apps.accounts.serializers import AccountSerializer
 
 from .models import *
+from .constants import *
 
 
-class FileSerializer(serializers.ModelSerializer):
+class FileUploadSerializer(serializers.ModelSerializer):
     user = ProfileSerializer(read_only=True, required=False)
 
     class Meta:
-        model = File
+        model = FileUpload
         fields = (
-            'id', 'file', 'name', 'file_type', 'file_content_type',
-            'size', 'created_at', 'updated_at',
+            'id', 'file', 'file_name', 'file_type', 'file_content_type',
+            'file_size', 'file_path', 'created_at', 'updated_at',
             'user',
         )
         read_only_fields = (
-            'name', 'file_type', 'file_content_type',
-            'size', 'created_at', 'updated_at',
+            'id', 'file_name', 'file_type', 'file_content_type',
+            'file_size', 'file_path', 'created_at', 'updated_at',
         )
 
     def validate(self, data):
@@ -28,9 +29,9 @@ class FileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'file': 'File name should be less than or equal to 75 characters.'
             })
-        data['name'] = self.set_filename(data['file'])
 
         data['file_type'] = self.get_filetype(data['file'])
+
         if data['file_type'] == 'image' and data['file'].content_type not in ALLOWED_IMAGE_TYPES:
             raise serializers.ValidationError({'file': 'Image format should be of {0}.'.format(
                 ', '.join(ALLOWED_IMAGE_TYPES))})
@@ -40,8 +41,6 @@ class FileSerializer(serializers.ModelSerializer):
         elif data['file_type'] == 'video' and data['file'].content_type not in ALLOWED_VIDEO_TYPES:
             raise serializers.ValidationError({'file': 'Video format should be of {0}.'.format(
                 ', '.join(ALLOWED_VIDEO_TYPES))})
-        data['file_content_type'] = data['file'].content_type
-        data['size'] = data['file'].size
 
         return data
 
@@ -50,12 +49,12 @@ class FileSerializer(serializers.ModelSerializer):
         queryset = queryset.select_related('user', 'user__user')
         return queryset
 
-    @staticmethod
-    def set_filename(file):
-        filename_list = file.name.lower().replace(' ', '_').split('.')
-        ext = filename_list.pop()
-        filename = ''.join(filename_list) + get_random_string(25) + '.' + ext
-        return filename
+    # @staticmethod
+    # def set_filename(file):
+    #     filename_list = file.name.lower().replace(' ', '_').split('.')
+    #     ext = filename_list.pop()
+    #     filename = ''.join(filename_list) + get_random_string(25) + '.' + ext
+    #     return filename
 
     @staticmethod
     def get_filetype(file):
@@ -65,11 +64,13 @@ class FileSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    user = ProfileSerializer(read_only=True, required=False)
     # user__user = AccountSerializer(read_only=True, required=False)
-    file = FileSerializer(required=False, allow_null=True)
-    comments_count = serializers.IntegerField(read_only=True, required=False)
+    user = ProfileSerializer(read_only=True, required=False)
     # comments_count = serializers.SerializerMethodField(read_only=True, required=False)
+    comments_count = serializers.IntegerField(read_only=True, required=False)
+    likes_count = serializers.IntegerField(read_only=True, required=False)
+    dislikes_count = serializers.IntegerField(read_only=True, required=False)
+    liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -79,8 +80,14 @@ class PostSerializer(serializers.ModelSerializer):
             'user',
             # 'user__user',
             'comments_count',
+            'likes_count',
+            'dislikes_count',
+            'liked',
         )
-        read_only_fields = ('created_at', 'updated_at',)
+        read_only_fields = (
+            'created_at', 'updated_at',
+            'liked',
+        )
 
     # @staticmethod
     # def get_comments_count(post):
@@ -101,6 +108,32 @@ class PostSerializer(serializers.ModelSerializer):
         queryset = queryset.annotate(comments_count=models.Count('post_comments', distinct=True))
         return queryset
 
+    @staticmethod
+    def annotate_likes_dislikes_count(queryset):
+        queryset = queryset.annotate(likes_count=models.Count(models.Case(
+            models.When(post_likes__liked=True, then=models.F('post_likes__pk')),
+            output_field=models.IntegerField()
+        ), distinct=True))
+
+        queryset = queryset.annotate(dislikes_count=models.Count(models.Case(
+            models.When(post_likes__liked=False, then=models.F('post_likes__pk')),
+            output_field=models.IntegerField()
+        ), distinct=True))
+
+        return queryset
+
+    def get_liked(self, obj):
+        request = self.context.get('request')
+        post_like_obj = None
+        if not request.user.is_authenticated():
+            return post_like_obj
+        try:
+            post_like_obj = PostLike.objects.get(user=request.user.profile, post__id=obj.id)
+        except PostLike.DoesNotExist:
+            return post_like_obj
+
+        return post_like_obj.liked
+
     # def to_representation(self, obj):
     #     obj = super(PostSerializer, self).to_representation(obj)
     #     depth = self.context.get('request').query_params.get('depth')
@@ -110,14 +143,26 @@ class PostSerializer(serializers.ModelSerializer):
     #     return obj
 
 
-class PostCommentSerializer(serializers.ModelSerializer):
+class PostCreateUpdateDeleteSerializer(PostSerializer):
+    file = serializers.PrimaryKeyRelatedField(queryset=FileUpload.objects.all(), required=False, allow_null=True)
+
+
+class PostListRetrieveSerializer(PostSerializer):
+    file = FileUploadSerializer(read_only=True)
+
+
+class PostLikeSerializer(serializers.ModelSerializer):
     user = ProfileSerializer(read_only=True, required=False)
-    # post = PostSerializer(read_only=True, required=False)
     post = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
 
     class Meta:
-        model = PostComment
-        fields = ('id', 'content', 'created_at', 'updated_at', 'post', 'user',)
+        model = PostLike
+        fields = (
+            'id', 'created_at', 'updated_at',
+            'post',
+            'user',
+            'liked',
+        )
         read_only_fields = ('created_at', 'updated_at',)
 
     @staticmethod
@@ -125,12 +170,85 @@ class PostCommentSerializer(serializers.ModelSerializer):
         queryset = queryset.select_related('user', 'user__user')
         return queryset
 
+    def create(self, validated_data):
+        request = self.context.get('request')
+        kwargs = self.context.get('view').kwargs
+        if self.Meta.model.objects.filter(
+            user=validated_data.get('user'), post=validated_data.get('post')
+        ).exists():
+            liked_obj = self.Meta.model.objects.get(
+                user=validated_data.get('user'), post=validated_data.get('post')
+            )
+            liked_obj.liked = validated_data.get('liked')
+            liked_obj.save()
+        else:
+            liked_obj = self.Meta.model.objects.create(**validated_data)
 
-ALLOWED_FILE_TYPES = ('image', 'audio', 'video',)
-ALLOWED_IMAGE_TYPES = ('image/jpeg', 'image/gif', 'image/png',
-                       'image/bmp', 'image/webp',)
-ALLOWED_AUDIO_TYPES = ('audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg',)
-ALLOWED_VIDEO_TYPES = ('video/mp4', 'video/webm', 'video/ogg',)
+        return liked_obj
 
 
+class PostCommentSerializer(serializers.ModelSerializer):
+    user = ProfileSerializer(read_only=True, required=False)
+    # post = PostSerializer(read_only=True, required=False)
+    post = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
+    liked = serializers.SerializerMethodField()
 
+    class Meta:
+        model = PostComment
+        fields = ('id', 'content', 'created_at', 'updated_at', 'post', 'user', 'liked',)
+        read_only_fields = ('created_at', 'updated_at', 'liked',)
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('user', 'user__user')
+        return queryset
+
+    def get_liked(self, obj):
+        request = self.context.get('request')
+        post_comment_like_obj = None
+        if not request.user.is_authenticated():
+            return post_comment_like_obj
+        try:
+            post_comment_like_obj = PostCommentLike.objects.get(
+                user=request.user.profile, post_comment__id=obj.id
+            )
+        except PostCommentLike.DoesNotExist:
+            return post_comment_like_obj
+
+        return post_comment_like_obj.liked
+
+
+class PostCommentLikeSerializer(serializers.ModelSerializer):
+    user = ProfileSerializer(read_only=True, required=False)
+    post_comment = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
+
+    class Meta:
+        model = PostCommentLike
+        fields = (
+            'id', 'created_at', 'updated_at',
+            'post_comment',
+            'user',
+            'liked',
+        )
+        read_only_fields = ('created_at', 'updated_at',)
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('user', 'user__user')
+        return queryset
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        kwargs = self.context.get('view').kwargs
+        if self.Meta.model.objects.filter(
+            user=validated_data.get('user'), post_comment=validated_data.get('post_comment')
+        ).exists():
+            liked_obj = self.Meta.model.objects.get(
+                user=validated_data.get('user'), post_comment=validated_data.get('post_comment')
+            )
+            liked_obj.liked = validated_data.get('liked')
+            liked_obj.save()
+        else:
+            liked_obj = self.Meta.model.objects.create(**validated_data)
+
+        return liked_obj

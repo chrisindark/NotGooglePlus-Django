@@ -1,7 +1,8 @@
 import os
+
 from django.core.exceptions import ImproperlyConfigured
-import dj_database_url
 from dotenv import load_dotenv
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,12 +17,18 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
+    "compressor",
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+
     'django_filters',
-    #'haystack',
+    'haystack',
+    'channels',
+    'django_celery_beat',
+    'sorl.thumbnail',
 
     'notgoogleplus.apps.core',
     'notgoogleplus.apps.accounts',
@@ -39,6 +46,7 @@ MIDDLEWARE = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
     'notgoogleplus.middleware.AppVersionMiddleware',
 )
 
@@ -88,24 +96,23 @@ USE_L10N = True
 
 USE_TZ = True
 
+SITE_ID = 1
+
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
 MEDIA_PATH = 'media/'
 STATIC_PATH = 'static/'
 
-STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, STATIC_PATH))
-MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, MEDIA_PATH))
-
 STATICFILES_DIRS = []
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    # 'compressor.finders.CompressorFinder',
-    )
+    'compressor.finders.CompressorFinder',
+)
 
-# COMPRESS_ENABLED = os.environ.get('COMPRESS_ENABLED', False)
+COMPRESS_ENABLED = False
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'notgoogleplus.apps.core.exceptions.custom_exception_handler',
@@ -115,27 +122,34 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FileUploadParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser',
+    ),
     'PAGE_SIZE': 20
 }
 
 AUTH_USER_MODEL = 'accounts.Account'
-AUTHENTICATION_BACKENDS = ('notgoogleplus.apps.accounts.backends.UsernameOrEmailBackend',)
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'notgoogleplus.apps.accounts.backends.UsernameOrEmailBackend',
+    'notgoogleplus.apps.accounts.backends.OauthBackend',
+)
 
-#HAYSTACK_CONNECTIONS = {
-    #'default': {
-        #'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
-        #'URL': 'http://127.0.0.1:9200/',
-        #'INDEX_NAME': 'haystack',
-    #},
-#}
+PASSWORD_RESET_CONFIRM_URL = '#/password/reset/confirm'
+PASSWORD_RESET_EMAIL_SUBJECT = 'account_password_reset_subject.txt'
+PASSWORD_RESET_EMAIL_TEMPLATE = 'account_password_reset_email.html'
+
+FILE_UPLOAD_PATH = 'uploads/'
+FILE_THUMBNAIL_PATH = 'thumbnails/'
 
 
 def get_env_var(name, default=None):

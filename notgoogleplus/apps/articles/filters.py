@@ -1,9 +1,12 @@
 import django_filters
 
+from notgoogleplus.apps.core.filters import NumberInFilter
+
 from .models import *
 
 
 class ArticleFilter(django_filters.FilterSet):
+    ids = NumberInFilter(name="id", lookup_expr='in')
     username = django_filters.CharFilter(name="user__user__username")
     o = django_filters.OrderingFilter(
         fields=(
