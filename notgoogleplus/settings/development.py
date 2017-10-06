@@ -208,10 +208,3 @@ AWS_S3_DEFAULT_REGION = 'us-east-1'
 
 AWS_SQS_HOST = 'http://127.0.0.1:4568'
 AWS_SQS_DEFAULT_REGION = 'us-east-1'
-
-# AWS_ACCESS_KEY_ID = 'AKIAJUHLRDP6V7HDH7AQ'
-# AWS_SECRET_ACCESS_KEY = '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'
-# AWS_S3_HOST = 'http://s3.amazonaws.com'
-# AWS_STORAGE_BUCKET_NAME = 'file.upload.server'
-# AWS_S3_USE_SSL = False
-# AWS_S3_DEFAULT_REGION = 'us-east-1'
