@@ -1,19 +1,32 @@
 from notgoogleplus.settings.common import *
-import dj_database_url
+from corsheaders.defaults import default_headers
 
 DEBUG = False
 
 SECRET_KEY = get_env_var('SECRET_KEY')
 
 DATABASES = {
-    'default': dj_database_url.config()
+    'default': {}
 }
 
-CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = ()
+STATIC_ROOT = os.path.abspath(os.path.join('/var/www/html/notgoogleplus/staging', STATIC_PATH))
+MEDIA_ROOT = os.path.abspath(os.path.join('/var/www/html/notgoogleplus/staging', MEDIA_PATH))
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CORS_ORIGIN_WHITELIST = ()
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_EXPOSE_HEADERS = (
+    'Access-Control-Allow-Origin',
+    'Content-Disposition',
+    'Content-Type',
+    'Content-Length',
+    'App-Version',
+)
+CORS_ALLOW_HEADERS = default_headers + (
+    'Content-Disposition',
+)
+
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

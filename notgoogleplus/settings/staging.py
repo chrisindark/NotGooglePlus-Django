@@ -1,4 +1,5 @@
 from notgoogleplus.settings.common import *
+from corsheaders.defaults import default_headers
 
 # Quick-start development settings - unsuitable for production
 
@@ -6,7 +7,6 @@ from notgoogleplus.settings.common import *
 SECRET_KEY = 'v&s0ym!t$uc^vdufh8(tpac7c*=xyu#am8e32)e1f0bnr*ys(b'
 
 ALLOWED_HOSTS = (
-    'dev.ngp.server.com',
     'ancient-tor-16694.herokuapp.com',
 )
 
@@ -47,6 +47,10 @@ LOGGING = {
     },
 }
 
+SITE_NAME = 'NotGooglePlus'
+APP_NAME = 'NotGooglePlus'
+STATIC_APP_URL = get_env_var('STATIC_APP_URL')
+DOMAIN_URL = STATIC_APP_URL.split('://')[1]
 LOGIN_URL = '/api-auth/login/'
 LOGOUT_URL = '/api-auth/logout/'
 LOGOUT_REDIRECT_URL = '/'
@@ -86,16 +90,20 @@ else:
         'PORT': get_env_var('NG_DB_PORT'),
     }
 
-STATIC_ROOT = os.path.abspath(os.path.join('/var/www/html/notgoogleplus/staging', STATIC_PATH))
-MEDIA_ROOT = os.path.abspath(os.path.join('/var/www/html/notgoogleplus/staging', MEDIA_PATH))
+STATIC_ROOT = os.path.abspath(os.path.join(PROJECT_PATH, STATIC_PATH))
+MEDIA_ROOT = os.path.abspath(os.path.join(PROJECT_PATH, MEDIA_PATH))
 
 CORS_ORIGIN_WHITELIST = ()
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_EXPOSE_HEADERS = (
     'Access-Control-Allow-Origin',
+    'Content-Disposition',
     'Content-Type',
     'Content-Length',
     'App-Version',
+)
+CORS_ALLOW_HEADERS = default_headers + (
+    'Content-Disposition',
 )
 
 SECURE_SSL_REDIRECT = True
@@ -105,18 +113,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-REDIS_URL = 'redis://127.0.0.1:6379'
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'asgi_redis.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [REDIS_URL],
-        },
-        'ROUTING': 'notgoogleplus.routing.channel_routing',
-    }
-}
-
 # CELERY SETTINGS
 BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
@@ -124,3 +120,11 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+
+GOOGLE_OAUTH2_CLIENT_ID = get_env_var('GOOGLE_OAUTH2_CLIENT_ID')
+GOOGLE_OAUTH2_CLIENT_SECRET = get_env_var('GOOGLE_OAUTH2_CLIENT_SECRET')
+GOOGLE_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/google/callback'
+
+TWITTER_OAUTH_CONSUMER_KEY = get_env_var('TWITTER_OAUTH_CONSUMER_KEY')
+TWITTER_OAUTH_CONSUMER_SECRET = get_env_var('TWITTER_OAUTH_CONSUMER_SECRET')
+TWITTER_OAUTH_CALLBACK_URL = STATIC_APP_URL + 'auth/twitter/callback'

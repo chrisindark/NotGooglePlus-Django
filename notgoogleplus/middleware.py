@@ -5,8 +5,7 @@ import logging
 
 from django.db import connection
 
-from notgoogleplus.apps.core.models import AppModel
-
+from apps.core.models import AppModel
 
 logger = logging.getLogger(__name__)
 

@@ -1,14 +1,10 @@
 from uuid import uuid4
 
-from django.utils.translation import ugettext as _
-from django.conf import settings
 from django.db import models
+from django.utils.translation import ugettext as _
 
-from notgoogleplus.apps.core.models import TimestampedModel
-from notgoogleplus.apps.core.awsutility import AwsUtility
-
+from apps.core.models import TimestampedModel
 from .constants import *
-
 
 content_file_path = '{0}{1}'.format(
     CONTENT_UPLOAD_PATH,

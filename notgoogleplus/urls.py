@@ -13,11 +13,11 @@ urlpatterns = [
     url(r'^$', get_swagger_view(title='swagger')),
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^api/v1/', include('notgoogleplus.apps.accounts.urls', namespace='accounts')),
-    url(r'^api/v1/', include('notgoogleplus.apps.profiles.urls', namespace='profiles')),
-    url(r'^api/v1/', include('notgoogleplus.apps.posts.urls', namespace='posts')),
-    url(r'^api/v1/', include('notgoogleplus.apps.articles.urls', namespace='articles')),
-    url(r'^api/v1/', include('notgoogleplus.apps.core.urls', namespace='core')),
+    url(r'^api/v1/', include('apps.accounts.urls', namespace='accounts')),
+    url(r'^api/v1/', include('apps.profiles.urls', namespace='profiles')),
+    url(r'^api/v1/', include('apps.posts.urls', namespace='posts')),
+    url(r'^api/v1/', include('apps.articles.urls', namespace='articles')),
+    url(r'^api/v1/', include('apps.core.urls', namespace='core')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
               + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

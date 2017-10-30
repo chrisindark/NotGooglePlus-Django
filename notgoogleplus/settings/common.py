@@ -25,16 +25,16 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
 
     'django_filters',
-    'haystack',
+    # 'haystack',
     'channels',
     'django_celery_beat',
     'sorl.thumbnail',
 
-    'notgoogleplus.apps.core',
-    'notgoogleplus.apps.accounts',
-    'notgoogleplus.apps.profiles',
-    'notgoogleplus.apps.posts',
-    'notgoogleplus.apps.articles',
+    'apps.core',
+    'apps.accounts',
+    'apps.profiles',
+    'apps.posts',
+    'apps.articles',
 )
 
 MIDDLEWARE = (
@@ -115,7 +115,7 @@ STATICFILES_FINDERS = (
 COMPRESS_ENABLED = False
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'notgoogleplus.apps.core.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'apps.core.exceptions.custom_exception_handler',
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': (
@@ -140,11 +140,11 @@ REST_FRAMEWORK = {
 AUTH_USER_MODEL = 'accounts.Account'
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'notgoogleplus.apps.accounts.backends.UsernameOrEmailBackend',
-    'notgoogleplus.apps.accounts.backends.OauthBackend',
+    'apps.accounts.backends.UsernameOrEmailBackend',
+    'apps.accounts.backends.OauthBackend',
 )
 
-PASSWORD_RESET_CONFIRM_URL = '#/password/reset/confirm'
+PASSWORD_RESET_CONFIRM_URL = 'password/reset/confirm'
 PASSWORD_RESET_EMAIL_SUBJECT = 'account_password_reset_subject.txt'
 PASSWORD_RESET_EMAIL_TEMPLATE = 'account_password_reset_email.html'
 

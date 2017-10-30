@@ -21,12 +21,12 @@ app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 app.conf.beat_schedule = {
     # 'add-every-5-seconds': {
-    #     'task': 'notgoogleplus.apps.core.tasks.add',
+    #     'task': 'apps.core.tasks.add',
     #     'schedule': 1.0,
     #     'args': (16, 16),
     # },
     'process-sqs-messages-test_queue': {
-        'task': 'notgoogleplus.apps.core.tasks.process_sqs_messages',
+        'task': 'apps.core.tasks.process_sqs_messages',
         'schedule': 1.0
     }
 }

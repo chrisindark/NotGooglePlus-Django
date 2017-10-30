@@ -4,7 +4,7 @@ from corsheaders.defaults import default_headers
 # Quick-start development settings - unsuitable for production
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'v&s0ym!t$uc^vdufh8(tpac7c*=xyu#am8e32)e1f0bnr*ys(b'
+SECRET_KEY = get_env_var('SECRET_KEY', default='secret-key')
 
 ALLOWED_HOSTS = (
     'localhost',
@@ -55,7 +55,7 @@ LOGGING = {
 
 SITE_NAME = 'NotGooglePlus'
 APP_NAME = 'NotGooglePlus'
-STATIC_APP_URL = get_env_var('STATIC_APP_URL', default='http://localhost:3000')
+STATIC_APP_URL = get_env_var('STATIC_APP_URL', default='http://localhost:3000/')
 DOMAIN_URL = STATIC_APP_URL.split('://')[1]
 LOGIN_URL = '/api-auth/login/'
 LOGOUT_URL = '/api-auth/logout/'
@@ -88,19 +88,14 @@ MIDDLEWARE = (
 ) + MIDDLEWARE
 
 DATABASES = {}
-
-if os.environ.get('NG_HEROKU_ENV'):
-    import dj_database_url
-    DATABASES['default'] = dj_database_url.config(conn_max_age=500)
-else:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': get_env_var('NG_DB_NAME'),
-        'USER': get_env_var('NG_DB_USERNAME'),
-        'PASSWORD': get_env_var('NG_DB_PASSWORD'),
-        'HOST': get_env_var('NG_DB_HOST'),
-        'PORT': get_env_var('NG_DB_PORT'),
-    }
+DATABASES['default'] = {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': get_env_var('NG_DB_NAME'),
+    'USER': get_env_var('NG_DB_USERNAME'),
+    'PASSWORD': get_env_var('NG_DB_PASSWORD'),
+    'HOST': get_env_var('NG_DB_HOST'),
+    'PORT': get_env_var('NG_DB_PORT'),
+}
 
 STATIC_ROOT = os.path.abspath(os.path.join(PROJECT_PATH, STATIC_PATH))
 MEDIA_ROOT = os.path.abspath(os.path.join(PROJECT_PATH, MEDIA_PATH))
@@ -127,16 +122,16 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
     'rest_framework.authentication.SessionAuthentication',
     'rest_framework.authentication.TokenAuthentication',
-    'notgoogleplus.apps.accounts.authentication.JWTAuthentication',
+    'apps.accounts.authentication.JWTAuthentication',
 )
 
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
-        'URL': 'http://127.0.0.1:9200/',
-        'INDEX_NAME': 'haystack',
-    },
-}
+# HAYSTACK_CONNECTIONS = {
+#     'default': {
+#         'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
+#         'URL': 'http://127.0.0.1:9200/',
+#         'INDEX_NAME': 'haystack',
+#     },
+# }
 
 REDIS_URL = 'redis://127.0.0.1:6379'
 
@@ -168,7 +163,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 SEND_ACTIVATION_EMAIL = False
 
-ACCOUNT_ACTIVATION_URL = 'home/account/activate'
+ACCOUNT_ACTIVATION_URL = STATIC_APP_URL + 'home/account/activate'
 ACCOUNT_ACTIVATION_EMAIL_SUBJECT = 'account_activation_email_subject.txt'
 ACCOUNT_ACTIVATION_EMAIL_BODY = 'account_activation_email_body.txt'
 ACCOUNT_ACTIVATION_EMAIL_TEMPLATE = 'account_activation_email.html'
@@ -177,41 +172,35 @@ ACCOUNT_CONFIRMATION_EMAIL_SUBJECT = 'account_confirmation_email_subject.html'
 ACCOUNT_CONFIRMATION_EMAIL_BODY = 'account_confirmation_email_body.html'
 ACCOUNT_CONFIRMATION_EMAIL_TEMPLATE = 'account_confirmation_email.html'
 
-PASSWORD_RESET_CONFIRM_URL = 'home/password/reset/confirm'
+PASSWORD_RESET_CONFIRM_URL = STATIC_APP_URL + 'home/password/reset/confirm'
 PASSWORD_RESET_EMAIL_SUBJECT = 'account_password_reset_subject.txt'
 PASSWORD_RESET_EMAIL_BODY = 'account_password_reset_body.txt'
 PASSWORD_RESET_EMAIL_TEMPLATE = 'account_password_reset_email.html'
 
-GOOGLE_OAUTH2_CLIENT_ID = '307738501047-pnpgrstnfm2r3bmqceptf5mve28sdt3c.apps.googleusercontent.com'
-GOOGLE_OAUTH2_CLIENT_SECRET = 'Lxff0ic5RSUaPccrOC3ieKZa'
-GOOGLE_OAUTH2_CALLBACK_URL = 'http://127.0.0.1:3000/auth/google/callback'
+GOOGLE_OAUTH2_CLIENT_ID = get_env_var('GOOGLE_OAUTH2_CLIENT_ID')
+GOOGLE_OAUTH2_CLIENT_SECRET = get_env_var('GOOGLE_OAUTH2_CLIENT_SECRET')
+GOOGLE_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/google/callback'
 
-TWITTER_OAUTH_CONSUMER_KEY = '1yCuO4Sfvc3IGEIvE1rPdgfaK'
-TWITTER_OAUTH_CONSUMER_SECRET = 'RGjHoQB7fLcIVIUikbqMZfHqkFMff4N0wXeAUAHK1zamr2yYK8'
-TWITTER_OAUTH_CALLBACK_URL = 'http://127.0.0.1:3000/auth/twitter/callback'
+TWITTER_OAUTH_CONSUMER_KEY = get_env_var('TWITTER_OAUTH_CONSUMER_KEY')
+TWITTER_OAUTH_CONSUMER_SECRET = get_env_var('TWITTER_OAUTH_CONSUMER_SECRET')
+TWITTER_OAUTH_CALLBACK_URL = STATIC_APP_URL + 'auth/twitter/callback'
 
-GITHUB_OAUTH2_CLIENT_ID = '94893b580eb207c6ffdf'
-GITHUB_OAUTH2_CLIENT_SECRET = '907ad95aa39ca47bbf217bfc60e3b060a89ff40a'
-GITHUB_OAUTH2_CALLBACK_URL = 'http://127.0.0.1:3000/auth/github/callback'
+GITHUB_OAUTH2_CLIENT_ID = get_env_var('GITHUB_OAUTH2_CLIENT_ID')
+GITHUB_OAUTH2_CLIENT_SECRET = get_env_var('GITHUB_OAUTH2_CLIENT_SECRET')
+GITHUB_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/github/callback'
 
-STRIPE_OAUTH2_CLIENT_ID = 'ca_BIg0n29mFhqx1LmMIAXEppUwUwYH4HGN'
-STRIPE_OAUTH2_CLIENT_SECRET = 'sk_test_JCKVNZDXaeIgEUHMaYQGHGzu'
-STRIPE_OAUTH2_CALLBACK_URL = 'http://127.0.0.1:3000/auth/stripe/callback'
-STRIPE_PUBLISHABLE_KEY = 'pk_test_6T7ARIdKL2DJVFBqKNWvVbJV'
+STRIPE_OAUTH2_CLIENT_ID = get_env_var('STRIPE_OAUTH2_CLIENT_ID')
+STRIPE_OAUTH2_CLIENT_SECRET = get_env_var('STRIPE_OAUTH2_CLIENT_SECRET')
+STRIPE_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/stripe/callback'
+STRIPE_PUBLISHABLE_KEY = get_env_var('STRIPE_PUBLISHABLE_KEY')
 
-AWS_ACCESS_KEY_ID = '12345678'
-AWS_SECRET_ACCESS_KEY = '12345678'
-AWS_S3_HOST = 'http://127.0.0.1:4567'
-AWS_STORAGE_BUCKET_NAME = 'notgoogleplus-media'
+AWS_ACCESS_KEY_ID = get_env_var('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = get_env_var('AWS_SECRET_ACCESS_KEY')
+
+AWS_S3_HOST = get_env_var('AWS_S3_HOST')
+AWS_STORAGE_BUCKET_NAME = get_env_var('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_USE_SSL = False
-AWS_S3_DEFAULT_REGION = 'us-east-1'
+AWS_S3_DEFAULT_REGION = get_env_var('AWS_S3_DEFAULT_REGION')
 
-AWS_SQS_HOST = 'http://127.0.0.1:4568'
-AWS_SQS_DEFAULT_REGION = 'us-east-1'
-
-# AWS_ACCESS_KEY_ID = 'AKIAJUHLRDP6V7HDH7AQ'
-# AWS_SECRET_ACCESS_KEY = '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'
-# AWS_S3_HOST = 'http://s3.amazonaws.com'
-# AWS_STORAGE_BUCKET_NAME = 'file.upload.server'
-# AWS_S3_USE_SSL = False
-# AWS_S3_DEFAULT_REGION = 'us-east-1'
+AWS_SQS_HOST = get_env_var('AWS_SQS_HOST')
+AWS_SQS_DEFAULT_REGION = get_env_var('AWS_SQS_DEFAULT_REGION')
