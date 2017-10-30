@@ -2,3 +2,4 @@
 
 dj-database-url=-0.4.2
 psycopg2==2.7.3.2
+gunicorn==19.7.1
