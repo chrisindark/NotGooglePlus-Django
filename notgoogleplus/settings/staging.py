@@ -8,6 +8,7 @@ SECRET_KEY = get_env_var('SECRET_KEY')
 
 ALLOWED_HOSTS = (
     'ancient-tor-16694.herokuapp.com',
+    '127.0.0.1',
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -53,6 +54,7 @@ STATIC_APP_URL = get_env_var('STATIC_APP_URL')
 DOMAIN_URL = STATIC_APP_URL.split('://')[1]
 LOGIN_URL = '/api-auth/login/'
 LOGOUT_URL = '/api-auth/logout/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 
@@ -106,16 +108,28 @@ CORS_ALLOW_HEADERS = default_headers + (
     'Content-Disposition',
 )
 
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
+
+REDIS_URL = 'redis://127.0.0.1:6379'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'asgi_redis.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+        },
+        'ROUTING': 'notgoogleplus.routing.channel_routing',
+    }
+}
 
 # CELERY SETTINGS
-BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
