@@ -4,7 +4,7 @@ from corsheaders.defaults import default_headers
 # Quick-start development settings - unsuitable for production
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'v&s0ym!t$uc^vdufh8(tpac7c*=xyu#am8e32)e1f0bnr*ys(b'
+SECRET_KEY = get_env_var('SECRET_KEY')
 
 ALLOWED_HOSTS = (
     'ancient-tor-16694.herokuapp.com',
