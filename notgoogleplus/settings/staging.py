@@ -8,11 +8,10 @@ SECRET_KEY = get_env_var('SECRET_KEY')
 
 ALLOWED_HOSTS = (
     'ancient-tor-16694.herokuapp.com',
-    '127.0.0.1',
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 LOGGING = {
     'disable_existing_loggers': False,
