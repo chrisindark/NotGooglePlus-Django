@@ -66,3 +66,4 @@ uritemplate==3.0.0
 urllib3==1.22
 vine==1.1.4
 zope.interface==4.4.3
+django-countries==5.0

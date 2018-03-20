@@ -32,7 +32,7 @@ def set_filename(instance):
     slug = slugify(filename_list)
     unique = binascii.hexlify(os.urandom(20)).decode()
 
-    if len(slug) > MAXIMUM_FILE_NAME_LENGTH:
+    while len(slug) > MAXIMUM_FILE_NAME_LENGTH:
         slug = slug[:MAXIMUM_FILE_NAME_LENGTH]
 
     while len(slug + '-' + unique + '.' + file_extension) > MAXIMUM_FILE_NAME_LENGTH:

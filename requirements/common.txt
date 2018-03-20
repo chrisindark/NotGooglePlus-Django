@@ -15,3 +15,4 @@ asgi-redis==1.4.3
 requests-oauthlib==0.8.0
 sorl-thumbnail==12.3
 django-haystack==2.6.1
+django-countries==5.0

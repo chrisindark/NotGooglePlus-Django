@@ -14,6 +14,7 @@ MAXIMUM_SLUG_LENGTH = 50
 @receiver(pre_save, sender=Article)
 def add_slug_before_article_save(sender, **kwargs):
     instance = kwargs.get('instance')
+    print('instance', instance)
     if instance.slug:
         return
 

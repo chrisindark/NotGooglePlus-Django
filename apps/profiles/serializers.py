@@ -25,7 +25,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(required=False, allow_blank=True, max_length=1000)
     dob = serializers.DateField(required=False, allow_null=True)
     gender = serializers.ChoiceField(required=False, allow_blank=True, choices=GENDER_CHOICES)
-    image = serializers.CharField(allow_blank=True, required=False)
+    image = serializers.CharField(allow_null=True, allow_blank=True, required=False)
     # following = serializers.SerializerMethodField()
 
     class Meta:

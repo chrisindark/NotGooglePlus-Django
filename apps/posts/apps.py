@@ -7,4 +7,5 @@ class PostConfig(AppConfig):
     verbose_name = 'Posts'
 
     def ready(self):
+        import apps.posts.signals
         pass
