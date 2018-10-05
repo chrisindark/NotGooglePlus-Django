@@ -171,10 +171,10 @@ class ArticleCommentSerializer(serializers.ModelSerializer):
         return article_comment_like_obj.liked
 
     def get_likes_count(self, obj):
-        return obj.post_comment_likes.filter(liked=True).count()
+        return obj.article_comment_likes.filter(liked=True).count()
 
     def get_dislikes_count(self, obj):
-        return obj.post_comment_likes.filter(liked=False).count()
+        return obj.article_comment_likes.filter(liked=False).count()
 
 
 class ArticleCommentLikeSerializer(serializers.ModelSerializer):
