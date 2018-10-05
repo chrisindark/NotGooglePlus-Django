@@ -89,13 +89,17 @@ MIDDLEWARE = (
 
 DATABASES = {}
 DATABASES['default'] = {
-    'ENGINE': 'django.db.backends.mysql',
-    'NAME': get_env_var('NG_DB_NAME'),
-    'USER': get_env_var('NG_DB_USERNAME'),
-    'PASSWORD': get_env_var('NG_DB_PASSWORD'),
-    'HOST': get_env_var('NG_DB_HOST'),
-    'PORT': get_env_var('NG_DB_PORT'),
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': os.path.join(BASE_DIR, 'db.sqlite3')
 }
+# DATABASES['default'] = {
+#     'ENGINE': 'django.db.backends.mysql',
+#     'NAME': get_env_var('NG_DB_NAME'),
+#     'USER': get_env_var('NG_DB_USERNAME'),
+#     'PASSWORD': get_env_var('NG_DB_PASSWORD'),
+#     'HOST': get_env_var('NG_DB_HOST'),
+#     'PORT': get_env_var('NG_DB_PORT'),
+# }
 
 STATIC_ROOT = os.path.abspath(os.path.join(PROJECT_PATH, STATIC_PATH))
 MEDIA_ROOT = os.path.abspath(os.path.join(PROJECT_PATH, MEDIA_PATH))

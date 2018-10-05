@@ -40,6 +40,15 @@ class ModelIdListMixin(generics.ListAPIView):
         return Response(data)
 
 
+class CreateListMixin(object):
+    """Allows bulk creation of a resource."""
+    def get_serializer(self, *args, **kwargs):
+        if isinstance(kwargs.get('data', {}), list):
+            kwargs['many'] = True
+
+        return super().get_serializer(*args, **kwargs)
+
+
 class S3FileSignatureView(generics.RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = S3CreateFileSignatureSerializer

@@ -1,3 +1,5 @@
+import jwt
+
 from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin,
@@ -90,7 +92,6 @@ class Account(AbstractBaseUser, PermissionsMixin):
         Generates a JSON Web Token that stores this user's ID and has an expiry
         date set to 60 days into the future.
         """
-        import jwt
         from datetime import datetime, timedelta
         from django.conf import settings
 
@@ -121,6 +122,7 @@ ACCOUNT_PERMISSION_CHOICES = (
 #     user = models.ForeignKey('Account')
 #     email = models.CharField(max_length=3, choices=ACCOUNT_PERMISSION_CHOICES,
 #                              default=ACCOUNT_PERMISSION_CHOICES[0][0])
+
 
 # class OauthAccount(models.Model):
 #     user = models.ForeignKey('accounts.Account', related_name='oauth', on_delete=models.CASCADE)

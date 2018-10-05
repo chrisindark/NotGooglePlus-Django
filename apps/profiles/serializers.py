@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from .models import Profile
 
+
 ALPHABET = RegexValidator(r'^[a-zA-Z]*$', 'Only letters are allowed.')
 GENDER_CHOICES = (
     ('M', 'Male'),
@@ -26,7 +27,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     dob = serializers.DateField(required=False, allow_null=True)
     gender = serializers.ChoiceField(required=False, allow_blank=True, choices=GENDER_CHOICES)
     image = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    # following = serializers.SerializerMethodField()
+    following = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -35,20 +36,24 @@ class ProfileSerializer(serializers.ModelSerializer):
             'nickname', 'tagline',
             'bio', 'dob', 'gender',
             'username', 'image',
-            # 'following',
+            'following',
         )
         # read_only_fields = ('username',)
 
     # def get_user(self, instance):
-        # request = self.context.get('request')
-        # if request.user == instance:
-            # serializer = AccountSerializer(instance.user, context={'request': request})
-            # return serializer.data
+    #     request = self.context.get('request')
+    #     if request.user == instance:
+    #         serializer = AccountSerializer(instance.user, context={'request': request})
+    #         return serializer.data
 
     def get_following(self, instance):
         user = self.context.get('request').user
+        if not hasattr(user, 'profile'):
+            return False
+
+        # instance is the object of the user's profile we are viewing
         followee = instance
-        return instance.is_following(followee)
+        return user.profile.is_following(followee)
 
     @staticmethod
     def setup_eager_loading(queryset):
@@ -61,9 +66,14 @@ class ProfileFollowSerializer(ProfileSerializer):
 
     class Meta(ProfileSerializer.Meta):
         fields = (
-            'first_name', 'last_name', 'nickname', 'tagline',
-            'bio', 'dob', 'gender', 'follow', 'user',
-            # 'following',
+            # 'first_name', 'last_name', 'nickname', 'tagline',
+            # 'bio', 'dob', 'gender',
+            'follow',
+            'following',
+        )
+        read_only_fields = (
+            # 'first_name', 'last_name', 'nickname', 'tagline',
+            # 'bio', 'dob', 'gender',
         )
 
     def validate(self, data):

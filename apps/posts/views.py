@@ -8,10 +8,10 @@ from apps.accounts.permissions import (
     IsOwner,
 )
 from .filters import (
-    FileUploadFilter, PostFilter, PostCommentFilter
+    PostFilter, PostCommentFilter
 )
 from .models import (
-    FileUpload, Post, PostLike, PostComment, PostCommentLike,
+    Post, PostLike, PostComment, PostCommentLike,
 )
 from .serializers import (
     FileUploadSerializer, PostSerializer, PostLikeSerializer,
@@ -24,41 +24,6 @@ from .serializers import (
 # from apps.profiles.models import (
 #     Profile,
 # )
-
-
-class FileUploadPagination(pagination.PageNumberPagination):
-    page_size_query_param = 'page_size'
-
-
-class FileUploadViewSet(viewsets.ModelViewSet):
-    queryset = FileUpload.objects.all()
-    serializer_class = FileUploadSerializer
-    pagination_class = FileUploadPagination
-    filter_class = FileUploadFilter
-    parser_classes = (
-        parsers.FileUploadParser,
-        parsers.FormParser,
-        parsers.MultiPartParser,
-    )
-
-    def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(), IsOwner(),)
-
-    def get_queryset(self):
-        queryset = super(FileUploadViewSet, self).get_queryset()
-        queryset = self.get_serializer_class().setup_eager_loading(queryset)
-
-        if self.kwargs.get('username'):
-            return queryset.filter(user__user__username=self.kwargs.get('username'))
-
-    def perform_create(self, serializer):
-        # try:
-        #     user = Profile.objects.get(user__username=self.kwargs.get('username'))
-        # except Profile.DoesNotExist:
-        #     raise NotFound()
-        serializer.save(user=self.request.user.profile)
 
 
 # Create your views here.

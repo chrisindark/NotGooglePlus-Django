@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^api/v1/', include('apps.profiles.urls', namespace='profiles')),
     url(r'^api/v1/', include('apps.posts.urls', namespace='posts')),
     url(r'^api/v1/', include('apps.articles.urls', namespace='articles')),
+    url(r'^api/v1/', include('apps.files.urls', namespace='files')),
     url(r'^api/v1/', include('apps.core.urls', namespace='core')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
               + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

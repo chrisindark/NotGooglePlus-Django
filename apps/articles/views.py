@@ -1,19 +1,28 @@
-from apps.core.views import *
-from rest_framework import viewsets, generics, pagination
+from rest_framework import viewsets, generics, pagination, mixins
+from rest_framework.exceptions import MethodNotAllowed
 
+from apps.core.views import *
 from apps.accounts.permissions import *
 from .filters import *
 from .serializers import *
 
 
 # Create your views here.
-class TagViewSet(viewsets.ReadOnlyModelViewSet):
+class TagViewSet(mixins.CreateModelMixin,
+                 mixins.RetrieveModelMixin,
+                 mixins.ListModelMixin,
+                 viewsets.GenericViewSet):
     """
     A simple ViewSet for viewing tags.
     """
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return (permissions.AllowAny(),)
+        return ()
 
 
 class ArticlePagination(pagination.PageNumberPagination):

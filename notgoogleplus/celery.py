@@ -4,6 +4,7 @@ from __future__ import unicode_literals, absolute_import
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 
 from django.conf import settings
 
@@ -20,14 +21,14 @@ app.config_from_object('django.conf:settings')
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 app.conf.beat_schedule = {
-    # 'add-every-5-seconds': {
-    #     'task': 'apps.core.tasks.add',
-    #     'schedule': 1.0,
-    #     'args': (16, 16),
-    # },
-    'process-sqs-messages-test_queue': {
-        'task': 'apps.core.tasks.process_sqs_messages',
-        'schedule': 1.0
-    }
+    'add-every-5-seconds': {
+        'task': 'apps.core.tasks.add',
+        'schedule': crontab(),
+        'args': (20, 20),
+    },
+    #'process-sqs-messages-test_queue': {
+    #    'task': 'apps.core.tasks.process_sqs_messages',
+    #    'schedule': 1.0
+    #}
 }
 app.conf.timezone = 'UTC'

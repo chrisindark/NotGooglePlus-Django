@@ -6,7 +6,7 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
-import apps.posts.models
+import apps.files.models
 
 
 class Migration(migrations.Migration):
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
-                ('file', models.FileField(max_length=255, upload_to=apps.posts.models.file_path_fn)),
+                ('file', models.FileField(max_length=255, upload_to=apps.files.models.file_path_fn)),
                 ('file_type', models.CharField(max_length=5)),
                 ('file_content_type', models.CharField(max_length=20)),
                 ('size', models.BigIntegerField(default=0)),
