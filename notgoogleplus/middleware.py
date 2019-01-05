@@ -63,7 +63,8 @@ class AppVersionMiddleware(object):
         # Code to be executed for each request/response after
         # the view is called.
         app_model = AppModel.objects.first()
-        response['App-Version'] = app_model.app_version
+        if app_model:
+            response['App-Version'] = app_model.app_version
         # if request.session.get('app_version', False):
         #     response['App-Version'] = request.session.get('app_version')
         # else:

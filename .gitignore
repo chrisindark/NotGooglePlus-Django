@@ -2,8 +2,12 @@
 *.pyc
 *.pyc~
 __pycache__
+
 .env
 media
 static
+db.sqlite3
+celerybeat-schedule
+
 .idea
 .vscode

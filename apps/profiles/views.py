@@ -1,9 +1,10 @@
-from rest_framework import generics
+from rest_framework import generics, permissions
 from rest_framework.exceptions import NotFound
 
 from apps.accounts.models import Account
-from .filters import *
-from .permissions import *
+from .models import Profile
+from .filters import ProfileFilter
+from .permissions import IsProfileOwner
 from .serializers import ProfileSerializer, ProfileFollowSerializer
 
 
@@ -23,7 +24,7 @@ class ProfileDetailView(generics.RetrieveUpdateAPIView):
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:
             return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(), IsOwner(),)
+        return (permissions.IsAuthenticated(), IsProfileOwner(),)
 
     def get_queryset(self):
         try:

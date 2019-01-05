@@ -6,6 +6,8 @@ from .models import *
 
 
 class TagSerializer(serializers.ModelSerializer):
+    # tag = serializers.CharField(required=True)
+
     class Meta:
         model = Tag
         fields = ('id', 'tag', 'slug',)
@@ -135,6 +137,8 @@ class ArticleCommentSerializer(serializers.ModelSerializer):
     # article = ArticleSerializer(read_only=True, required=False)
     article = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
     liked = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    dislikes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = ArticleComment
@@ -143,7 +147,7 @@ class ArticleCommentSerializer(serializers.ModelSerializer):
             'user',
             'user__user',
             'article',
-            'liked',
+            'liked', 'likes_count', 'dislikes_count',
         )
         read_only_fields = ('created_at', 'updated_at', 'liked',)
 
@@ -165,6 +169,12 @@ class ArticleCommentSerializer(serializers.ModelSerializer):
             return article_comment_like_obj
 
         return article_comment_like_obj.liked
+
+    def get_likes_count(self, obj):
+        return obj.article_comment_likes.filter(liked=True).count()
+
+    def get_dislikes_count(self, obj):
+        return obj.article_comment_likes.filter(liked=False).count()
 
 
 class ArticleCommentLikeSerializer(serializers.ModelSerializer):

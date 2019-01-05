@@ -2,6 +2,7 @@ from django.db import models
 
 from apps.core.models import TimestampedModel
 
+
 GENDER_CHOICES = (
     ('M', 'Male'),
     ('F', 'Female'),

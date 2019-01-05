@@ -35,6 +35,7 @@ INSTALLED_APPS = (
     'apps.profiles',
     'apps.posts',
     'apps.articles',
+    'apps.files',
 )
 
 MIDDLEWARE = (
@@ -122,7 +123,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'apps.accounts.authentication.JWTAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
@@ -130,9 +133,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.FileUploadParser',
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.FormParser',
+        # 'rest_framework.parsers.FileUploadParser',
     ),
     'PAGE_SIZE': 20
 }

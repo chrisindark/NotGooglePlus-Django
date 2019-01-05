@@ -114,7 +114,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
 
-REDIS_URL = 'redis://127.0.0.1:6379'
+REDIS_URL = 'redis://127.0.0.1:6378'
 
 CHANNEL_LAYERS = {
     'default': {

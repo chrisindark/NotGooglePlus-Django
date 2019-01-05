@@ -58,8 +58,8 @@ class ArticleLike(TimestampedModel):
 
 
 class ArticleCommentLike(TimestampedModel):
-    user = models.ForeignKey('profiles.Profile', related_name='article_comment_l', on_delete=models.CASCADE)
-    article_comment = models.ForeignKey('ArticleComment', related_name='article_comment_l', on_delete=models.CASCADE)
+    user = models.ForeignKey('profiles.Profile', related_name='article_comment_likes', on_delete=models.CASCADE)
+    article_comment = models.ForeignKey('ArticleComment', related_name='article_comment_likes', on_delete=models.CASCADE)
     liked = models.NullBooleanField(default=None)
 
     class Meta:

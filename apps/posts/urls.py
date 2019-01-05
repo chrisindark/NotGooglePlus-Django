@@ -10,13 +10,11 @@ from .views import (
     PostIdListView,
     PostLikeListCreateView,
     PostCommentLikeListCreateView,
-    FileUploadViewSet
 )
 
 
 router = routers.SimpleRouter()
 router.register(r'posts', PostViewSet)
-router.register(r'files/(?P<username>[^/.]+)', FileUploadViewSet)
 
 urlpatterns = (
     url(r'posts/ids/$', PostIdListView.as_view(), name='post-id-list'),
