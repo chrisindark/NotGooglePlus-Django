@@ -1,3 +1,8 @@
+from apps.profiles.models import Profile
+from apps.posts.models import Post
+from apps.articles.models import Article
+
+
 # utility function to create random posts for random users
 def posts_seeder():
     import os
@@ -15,6 +20,7 @@ def posts_seeder():
             user=user
         )
         pass
+
 
 # utility function to create random articles for random users
 def articles_seeder():
