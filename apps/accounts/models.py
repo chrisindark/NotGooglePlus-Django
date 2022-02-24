@@ -1,5 +1,3 @@
-import jwt
-
 from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin,
@@ -11,11 +9,12 @@ class AccountManager(BaseUserManager):
     """
     Django requires that custom users define their own Manager class. By
     inheriting from `BaseUserManager`, we get a lot of the same code used by
-    Django to create an `Account`. 
+    Django to create an `Account`.
 
     All we have to do is override the `create_user` function which we will use
     to create `Account` objects.
     """
+
     def create_user(self, username, email, password=None, **kwargs):
         if not email:
             raise ValueError('Users must have a valid email address.')
@@ -52,6 +51,7 @@ class AccountManager(BaseUserManager):
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
+    id = models.AutoField(primary_key=True)
     email = models.EmailField(db_index=True, unique=True)
     username = models.CharField(db_index=True, max_length=20, unique=True)
     is_active = models.BooleanField(default=True)
@@ -92,6 +92,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
         Generates a JSON Web Token that stores this user's ID and has an expiry
         date set to 60 days into the future.
         """
+        import jwt
         from datetime import datetime, timedelta
         from django.conf import settings
 
@@ -99,10 +100,11 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
         token = jwt.encode({
             'id': self.pk,
+            'username': self.username,
             'exp': int(dt.strftime('%s')),
         }, settings.SECRET_KEY, algorithm='HS256')
-
-        return token.decode('utf-8')
+        # print(token)
+        return token
 
     def __str__(self):
         return self.email

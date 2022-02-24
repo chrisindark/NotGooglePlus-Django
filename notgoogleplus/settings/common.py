@@ -19,23 +19,23 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
-    "compressor",
+    # "compressor",
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
 
     'django_filters',
     # 'haystack',
-    'channels',
-    'django_celery_beat',
-    'sorl.thumbnail',
+    # 'channels',
+    # 'django_celery_beat',
+    # 'sorl.thumbnail',
 
-    'apps.core',
     'apps.accounts',
-    'apps.profiles',
-    'apps.posts',
-    'apps.articles',
-    'apps.files',
+    # 'apps.core',
+    # 'apps.profiles',
+    # 'apps.posts',
+    # 'apps.articles',
+    # 'apps.files',
 )
 
 MIDDLEWARE = (
@@ -48,7 +48,7 @@ MIDDLEWARE = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    'notgoogleplus.middleware.AppVersionMiddleware',
+    # 'notgoogleplus.middleware.AppVersionMiddleware',
 )
 
 ROOT_URLCONF = 'notgoogleplus.urls'
@@ -110,7 +110,7 @@ STATICFILES_DIRS = []
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder',
+    # 'compressor.finders.CompressorFinder',
 )
 
 COMPRESS_ENABLED = False
@@ -137,14 +137,15 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FormParser',
         # 'rest_framework.parsers.FileUploadParser',
     ),
-    'PAGE_SIZE': 20
+    'PAGE_SIZE': 20,
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
 }
 
 AUTH_USER_MODEL = 'accounts.Account'
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.backends.UsernameOrEmailBackend',
-    'apps.accounts.backends.OauthBackend',
+    # 'apps.accounts.backends.OauthBackend',
 )
 
 PASSWORD_RESET_CONFIRM_URL = 'password/reset/confirm'
@@ -161,17 +162,14 @@ def get_env_var(name, default=None):
     except KeyError:
         if default:
             return default
-        raise ImproperlyConfigured('Set the {0} environment variable.'.format(name))
+        raise ImproperlyConfigured(
+            'Set the {0} environment variable.'.format(name))
 
 
-def read_env():
-    dotenv_path = os.path.join(BASE_DIR, '.env')
+def read_env(name):
+    dotenv_path = os.path.join(BASE_DIR, '{0}.env'.format(name))
     try:
         load_dotenv(dotenv_path)
     except IOError:
         raise
         pass
-
-
-# load environment variables from .env file
-read_env()

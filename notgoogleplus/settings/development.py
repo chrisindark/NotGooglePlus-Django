@@ -1,5 +1,10 @@
-from notgoogleplus.settings.common import *
 from corsheaders.defaults import default_headers
+from notgoogleplus.settings.common import *
+
+
+# load environment variables from .env file
+read_env(".development")
+
 
 # Quick-start development settings - unsuitable for production
 
@@ -28,7 +33,7 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG', # message level to be written to console
+            'level': 'DEBUG',  # message level to be written to console
             # logging handler that outputs log messages to terminal
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
@@ -55,7 +60,8 @@ LOGGING = {
 
 SITE_NAME = 'NotGooglePlus'
 APP_NAME = 'NotGooglePlus'
-STATIC_APP_URL = get_env_var('STATIC_APP_URL', default='http://localhost:3000/')
+STATIC_APP_URL = get_env_var(
+    'STATIC_APP_URL', default='http://localhost:8000/')
 DOMAIN_URL = STATIC_APP_URL.split('://')[1]
 LOGIN_URL = '/api-auth/login/'
 LOGOUT_URL = '/api-auth/logout/'
@@ -79,7 +85,7 @@ SWAGGER_SETTINGS = {
 INSTALLED_APPS += (
     'django_extensions',
     'debug_toolbar',
-    'rest_framework_swagger',
+    'drf_yasg',
 )
 
 MIDDLEWARE = (
@@ -88,10 +94,10 @@ MIDDLEWARE = (
 ) + MIDDLEWARE
 
 DATABASES = {}
-DATABASES['default'] = {
-    'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': os.path.join(BASE_DIR, 'db.sqlite3')
-}
+# DATABASES['default'] = {
+#     'ENGINE': 'django.db.backends.sqlite3',
+#     'NAME': os.path.join(BASE_DIR, 'db.sqlite3')
+# }
 # DATABASES['default'] = {
 #     'ENGINE': 'django.db.backends.mysql',
 #     'NAME': get_env_var('NG_DB_NAME'),
@@ -100,6 +106,15 @@ DATABASES['default'] = {
 #     'HOST': get_env_var('NG_DB_HOST'),
 #     'PORT': get_env_var('NG_DB_PORT'),
 # }
+DATABASES['default'] = {
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': get_env_var('NG_DB_NAME'),
+    'USER': get_env_var('NG_DB_USERNAME'),
+    'PASSWORD': get_env_var('NG_DB_PASSWORD'),
+    'HOST': get_env_var('NG_DB_HOST'),
+    'PORT': get_env_var('NG_DB_PORT'),
+}
+
 
 STATIC_ROOT = os.path.abspath(os.path.join(PROJECT_PATH, STATIC_PATH))
 MEDIA_ROOT = os.path.abspath(os.path.join(PROJECT_PATH, MEDIA_PATH))
@@ -137,7 +152,9 @@ REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
 #     },
 # }
 
-REDIS_URL = 'redis://127.0.0.1:6379'
+REDIS_HOST = "localhost"
+REDIS_PORT = "6379"
+REDIS_URL = 'redis://{0}:{1}'.format(REDIS_HOST, REDIS_PORT)
 
 CHANNEL_LAYERS = {
     'default': {
@@ -159,11 +176,11 @@ CELERY_TIMEZONE = 'UTC'
 
 # EMAIL SETTINGS
 EMAIL_USE_TLS = True
-EMAIL_HOST = get_env_var('NG_EMAIL_HOST')
-EMAIL_PORT = get_env_var('NG_EMAIL_PORT')
-EMAIL_HOST_USER = get_env_var('NG_EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = get_env_var('NG_EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_HOST = get_env_var('NG_EMAIL_HOST')
+# EMAIL_PORT = get_env_var('NG_EMAIL_PORT')
+# EMAIL_HOST_USER = get_env_var('NG_EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = get_env_var('NG_EMAIL_HOST_PASSWORD')
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 SEND_ACTIVATION_EMAIL = False
 
@@ -181,30 +198,30 @@ PASSWORD_RESET_EMAIL_SUBJECT = 'account_password_reset_subject.txt'
 PASSWORD_RESET_EMAIL_BODY = 'account_password_reset_body.txt'
 PASSWORD_RESET_EMAIL_TEMPLATE = 'account_password_reset_email.html'
 
-GOOGLE_OAUTH2_CLIENT_ID = get_env_var('GOOGLE_OAUTH2_CLIENT_ID')
-GOOGLE_OAUTH2_CLIENT_SECRET = get_env_var('GOOGLE_OAUTH2_CLIENT_SECRET')
-GOOGLE_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/google/callback'
+# GOOGLE_OAUTH2_CLIENT_ID = get_env_var('GOOGLE_OAUTH2_CLIENT_ID')
+# GOOGLE_OAUTH2_CLIENT_SECRET = get_env_var('GOOGLE_OAUTH2_CLIENT_SECRET')
+# GOOGLE_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/google/callback'
 
-TWITTER_OAUTH_CONSUMER_KEY = get_env_var('TWITTER_OAUTH_CONSUMER_KEY')
-TWITTER_OAUTH_CONSUMER_SECRET = get_env_var('TWITTER_OAUTH_CONSUMER_SECRET')
-TWITTER_OAUTH_CALLBACK_URL = STATIC_APP_URL + 'auth/twitter/callback'
+# TWITTER_OAUTH_CONSUMER_KEY = get_env_var('TWITTER_OAUTH_CONSUMER_KEY')
+# TWITTER_OAUTH_CONSUMER_SECRET = get_env_var('TWITTER_OAUTH_CONSUMER_SECRET')
+# TWITTER_OAUTH_CALLBACK_URL = STATIC_APP_URL + 'auth/twitter/callback'
 
-GITHUB_OAUTH2_CLIENT_ID = get_env_var('GITHUB_OAUTH2_CLIENT_ID')
-GITHUB_OAUTH2_CLIENT_SECRET = get_env_var('GITHUB_OAUTH2_CLIENT_SECRET')
-GITHUB_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/github/callback'
+# GITHUB_OAUTH2_CLIENT_ID = get_env_var('GITHUB_OAUTH2_CLIENT_ID')
+# GITHUB_OAUTH2_CLIENT_SECRET = get_env_var('GITHUB_OAUTH2_CLIENT_SECRET')
+# GITHUB_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/github/callback'
 
-STRIPE_OAUTH2_CLIENT_ID = get_env_var('STRIPE_OAUTH2_CLIENT_ID')
-STRIPE_OAUTH2_CLIENT_SECRET = get_env_var('STRIPE_OAUTH2_CLIENT_SECRET')
-STRIPE_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/stripe/callback'
-STRIPE_PUBLISHABLE_KEY = get_env_var('STRIPE_PUBLISHABLE_KEY')
+# STRIPE_OAUTH2_CLIENT_ID = get_env_var('STRIPE_OAUTH2_CLIENT_ID')
+# STRIPE_OAUTH2_CLIENT_SECRET = get_env_var('STRIPE_OAUTH2_CLIENT_SECRET')
+# STRIPE_OAUTH2_CALLBACK_URL = STATIC_APP_URL + 'auth/stripe/callback'
+# STRIPE_PUBLISHABLE_KEY = get_env_var('STRIPE_PUBLISHABLE_KEY')
 
-AWS_ACCESS_KEY_ID = get_env_var('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = get_env_var('AWS_SECRET_ACCESS_KEY')
+# AWS_ACCESS_KEY_ID = get_env_var('AWS_ACCESS_KEY_ID')
+# AWS_SECRET_ACCESS_KEY = get_env_var('AWS_SECRET_ACCESS_KEY')
 
-AWS_S3_HOST = get_env_var('AWS_S3_HOST')
-AWS_STORAGE_BUCKET_NAME = get_env_var('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_USE_SSL = False
-AWS_S3_DEFAULT_REGION = get_env_var('AWS_S3_DEFAULT_REGION')
+# AWS_S3_HOST = get_env_var('AWS_S3_HOST')
+# AWS_STORAGE_BUCKET_NAME = get_env_var('AWS_STORAGE_BUCKET_NAME')
+# AWS_S3_USE_SSL = False
+# AWS_S3_DEFAULT_REGION = get_env_var('AWS_S3_DEFAULT_REGION')
 
-AWS_SQS_HOST = get_env_var('AWS_SQS_HOST')
-AWS_SQS_DEFAULT_REGION = get_env_var('AWS_SQS_DEFAULT_REGION')
+# AWS_SQS_HOST = get_env_var('AWS_SQS_HOST')
+# AWS_SQS_DEFAULT_REGION = get_env_var('AWS_SQS_DEFAULT_REGION')

@@ -16,7 +16,8 @@ class TagSerializer(serializers.ModelSerializer):
 
 class ArticleSerializer(serializers.ModelSerializer):
     user = ProfileSerializer(read_only=True, required=False)
-    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all(), required=False)
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tag.objects.all(), required=False)
     comments_count = serializers.IntegerField(read_only=True, required=False)
     likes_count = serializers.IntegerField(read_only=True, required=False)
     dislikes_count = serializers.IntegerField(read_only=True, required=False)
@@ -46,19 +47,22 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def annotate_comments_count(queryset):
-        queryset = queryset.annotate(comments_count=models.Count('article_comments', distinct=True))
+        queryset = queryset.annotate(
+            comments_count=models.Count('article_comments', distinct=True))
         return queryset
 
     @staticmethod
     def annotate_likes_dislikes_count(queryset):
         queryset = queryset.annotate(likes_count=models.Count(models.Case(
-            models.When(article_likes__liked=True, then=models.F('article_likes__id')),
+            models.When(article_likes__liked=True,
+                        then=models.F('article_likes__id')),
             output_field=models.IntegerField(),
             default=None
         ), distinct=True))
 
         queryset = queryset.annotate(dislikes_count=models.Count(models.Case(
-            models.When(article_likes__liked=False, then=models.F('article_likes__id')),
+            models.When(article_likes__liked=False,
+                        then=models.F('article_likes__id')),
             output_field=models.IntegerField(),
             default=None
         ), distinct=True))
@@ -68,10 +72,11 @@ class ArticleSerializer(serializers.ModelSerializer):
     def get_liked(self, obj):
         request = self.context.get('request')
         article_like_obj = None
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return article_like_obj
         try:
-            article_like_obj = ArticleLike.objects.get(user=request.user.profile, article__id=obj.id)
+            article_like_obj = ArticleLike.objects.get(
+                user=request.user.profile, article__id=obj.id)
         except ArticleLike.DoesNotExist:
             return article_like_obj
 
@@ -100,7 +105,8 @@ class ArticleSerializer(serializers.ModelSerializer):
 
 class ArticleLikeSerializer(serializers.ModelSerializer):
     user = ProfileSerializer(read_only=True, required=False)
-    article = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
+    article = serializers.PrimaryKeyRelatedField(
+        read_only=True, required=False)
 
     class Meta:
         model = ArticleLike
@@ -121,7 +127,8 @@ class ArticleLikeSerializer(serializers.ModelSerializer):
         kwargs = self.context.get('view').kwargs
         article = Article.objects.get(pk=kwargs.get('article__id'))
         if self.Meta.model.objects.filter(user=request.user.profile, article=article).exists():
-            liked_obj = self.Meta.model.objects.get(user=request.user.profile, article=article)
+            liked_obj = self.Meta.model.objects.get(
+                user=request.user.profile, article=article)
             liked_obj.liked = validated_data.get('liked')
             liked_obj.save()
         else:
@@ -135,7 +142,8 @@ class ArticleCommentSerializer(serializers.ModelSerializer):
     # user = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
     user__user = AccountSerializer(read_only=True, required=False)
     # article = ArticleSerializer(read_only=True, required=False)
-    article = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
+    article = serializers.PrimaryKeyRelatedField(
+        read_only=True, required=False)
     liked = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     dislikes_count = serializers.SerializerMethodField()
@@ -159,7 +167,7 @@ class ArticleCommentSerializer(serializers.ModelSerializer):
     def get_liked(self, obj):
         request = self.context.get('request')
         article_comment_like_obj = None
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return article_comment_like_obj
         try:
             article_comment_like_obj = ArticleCommentLike.objects.get(
@@ -179,7 +187,8 @@ class ArticleCommentSerializer(serializers.ModelSerializer):
 
 class ArticleCommentLikeSerializer(serializers.ModelSerializer):
     user = ProfileSerializer(read_only=True, required=False)
-    article_comment = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
+    article_comment = serializers.PrimaryKeyRelatedField(
+        read_only=True, required=False)
 
     class Meta:
         model = ArticleCommentLike

@@ -9,7 +9,8 @@ class UsernameOrEmailBackend(ModelBackend):
         if username is None:
             username = kwargs.get(Account.USERNAME_FIELD)
         try:
-            account = Account.objects.get(Q(username=username) | Q(email=username))
+            account = Account.objects.get(
+                Q(username=username) | Q(email=username))
         except Account.DoesNotExist:
             # Run the default password hasher once to reduce the timing
             # difference between an existing and a non-existing user (#20760).

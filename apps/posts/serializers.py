@@ -49,18 +49,21 @@ class PostSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def annotate_comments_count(queryset):
-        queryset = queryset.annotate(comments_count=models.Count('post_comments', distinct=True))
+        queryset = queryset.annotate(
+            comments_count=models.Count('post_comments', distinct=True))
         return queryset
 
     @staticmethod
     def annotate_likes_dislikes_count(queryset):
         queryset = queryset.annotate(likes_count=models.Count(models.Case(
-            models.When(post_likes__liked=True, then=models.F('post_likes__pk')),
+            models.When(post_likes__liked=True,
+                        then=models.F('post_likes__pk')),
             output_field=models.IntegerField()
         ), distinct=True))
 
         queryset = queryset.annotate(dislikes_count=models.Count(models.Case(
-            models.When(post_likes__liked=False, then=models.F('post_likes__pk')),
+            models.When(post_likes__liked=False,
+                        then=models.F('post_likes__pk')),
             output_field=models.IntegerField()
         ), distinct=True))
 
@@ -69,10 +72,11 @@ class PostSerializer(serializers.ModelSerializer):
     def get_liked(self, obj):
         request = self.context.get('request')
         post_like_obj = None
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return post_like_obj
         try:
-            post_like_obj = PostLike.objects.get(user=request.user.profile, post__id=obj.id)
+            post_like_obj = PostLike.objects.get(
+                user=request.user.profile, post__id=obj.id)
         except PostLike.DoesNotExist:
             return post_like_obj
 
@@ -88,7 +92,8 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class PostCreateUpdateDeleteSerializer(PostSerializer):
-    file = serializers.PrimaryKeyRelatedField(queryset=FileUpload.objects.all(), required=False, allow_null=True)
+    file = serializers.PrimaryKeyRelatedField(
+        queryset=FileUpload.objects.all(), required=False, allow_null=True)
 
 
 class PostListRetrieveSerializer(PostSerializer):
@@ -155,7 +160,7 @@ class PostCommentSerializer(serializers.ModelSerializer):
     def get_liked(self, obj):
         request = self.context.get('request')
         post_comment_like_obj = None
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return post_comment_like_obj
         try:
             post_comment_like_obj = PostCommentLike.objects.get(
@@ -175,7 +180,8 @@ class PostCommentSerializer(serializers.ModelSerializer):
 
 class PostCommentLikeSerializer(serializers.ModelSerializer):
     user = ProfileSerializer(read_only=True, required=False)
-    post_comment = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
+    post_comment = serializers.PrimaryKeyRelatedField(
+        read_only=True, required=False)
 
     class Meta:
         model = PostCommentLike

@@ -5,7 +5,7 @@ import logging
 
 from django.db import connection
 
-from apps.core.models import AppModel
+# from apps.core.models import AppModel
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ class QueryCountDebugMiddleware(object):
     status code of 200). It does not currently support
     multi-db setups.
     """
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -42,7 +43,8 @@ class QueryCountDebugMiddleware(object):
                     query_time = query.get('duration', 0) / 1000
                 total_time += float(query_time)
 
-            logger.debug('%s queries run, total %s seconds' % (len(connection.queries), total_time))
+            logger.debug('%s queries run, total %s seconds' %
+                         (len(connection.queries), total_time))
             # print('%s queries run, total %s seconds' % (len(connection.queries), total_time))
         return response
 
@@ -52,6 +54,7 @@ class AppVersionMiddleware(object):
     This middleware will add application version to the
     headers of every response object.
     """
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -62,9 +65,9 @@ class AppVersionMiddleware(object):
 
         # Code to be executed for each request/response after
         # the view is called.
-        app_model = AppModel.objects.first()
-        if app_model:
-            response['App-Version'] = app_model.app_version
+        # app_model = AppModel.objects.first()
+        # if app_model:
+        #     response['App-Version'] = app_model.app_version
         # if request.session.get('app_version', False):
         #     response['App-Version'] = request.session.get('app_version')
         # else:
