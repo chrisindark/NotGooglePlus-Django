@@ -70,13 +70,16 @@ class JWTAuthentication(authentication.BaseAuthentication):
         from django.apps import apps
 
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY)
-        except:
+            payload = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=['HS256'])
+        except BaseException as e:
+            # print(e)
             msg = 'Invalid authentication. Could not decode token.'
             raise AuthenticationFailed(msg)
 
         try:
-            user = apps.get_model(settings.AUTH_USER_MODEL).objects.get(pk=payload['id'])
+            user = apps.get_model(
+                settings.AUTH_USER_MODEL).objects.get(pk=payload['id'])
         except apps.get_model(settings.AUTH_USER_MODEL).DoesNotExist:
             msg = 'No user matching this token was found.'
             raise AuthenticationFailed(msg)

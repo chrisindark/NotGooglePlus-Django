@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework import (
     generics,
     views, status, pagination
@@ -45,7 +46,8 @@ class AccountListCreateView(AccountMixin, generics.ListCreateAPIView):
         # self.send_activation_email(serializer.data)
 
     def send_activation_email(self, user):
-        serializer = AccountActivateSerializer(data=user, context={'request': self.request})
+        serializer = AccountActivateSerializer(
+            data=user, context={'request': self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -124,7 +126,7 @@ class LoginView(generics.CreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class JWTView(generics.CreateAPIView):
+class JWTLoginView(generics.CreateAPIView):
     """
     Return a jwt after authenticating the user.
     """
@@ -142,7 +144,11 @@ class LogoutView(views.APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
-        request.user.auth_token.delete()
+        try:
+            request.user.auth_token.delete()
+        except BaseException as e:
+            # print(e)
+            pass
 
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
@@ -224,7 +230,7 @@ class TwitterOauthCallbackView(generics.CreateAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-from rest_framework import serializers
+
 class GithubOauthCallbackSerializer(serializers.Serializer):
     code = serializers.CharField(write_only=True, required=True)
     token = serializers.CharField(read_only=True)
@@ -306,6 +312,7 @@ class GithubOauthCallbackSerializer(serializers.Serializer):
         data = self.get_access_token(data)
 
         return data
+
 
 class GithubOauthCallbackView(generics.CreateAPIView):
     permission_classes = (IsNotAuthenticated,)

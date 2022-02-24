@@ -1,5 +1,3 @@
-from django.utils.translation import ugettext_lazy as _
-
 from rest_framework.exceptions import APIException
 from rest_framework.status import HTTP_503_SERVICE_UNAVAILABLE
 from rest_framework.views import exception_handler
@@ -7,7 +5,7 @@ from rest_framework.views import exception_handler
 
 class ServiceUnavailable(APIException):
     status_code = HTTP_503_SERVICE_UNAVAILABLE
-    default_detail = _('Service temporarily unavailable, try again later.')
+    default_detail = 'Service temporarily unavailable, try again later.'
     default_code = 'service_unavailable'
 
 

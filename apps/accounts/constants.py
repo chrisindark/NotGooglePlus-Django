@@ -1,5 +1,3 @@
-from django.utils.translation import ugettext as _
-
 USER_TYPE_CHOICES = ()
 
 GOOGLE_ACCESS_TOKEN_URL = 'https://accounts.google.com/o/oauth2/token'

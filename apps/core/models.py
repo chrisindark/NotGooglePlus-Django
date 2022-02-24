@@ -1,4 +1,3 @@
-from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.db import models
 
@@ -45,55 +44,55 @@ class AppModel(TimestampedModel):
         return '<AppModel: {app_version}>'.format(app_version=self.app_version)
 
 
-class S3FileUpload(TimestampedModel):
-    """
-    This class stores the data of S3 multipart upload to track the upload
+# class S3FileUpload(TimestampedModel):
+#     """
+#     This class stores the data of S3 multipart upload to track the upload
 
-    It stores the file key, upload id, file details and the chunks uploaded
-    to S3 server.
-    """
+#     It stores the file key, upload id, file details and the chunks uploaded
+#     to S3 server.
+#     """
 
-    file_name = models.CharField(
-        max_length=255,
-        verbose_name=_('File name '),
-        help_text=_('Name of the file with which user uploaded')
-    )
-    file_size = models.BigIntegerField(
-        verbose_name=_('File size'),
-        help_text=_('Size of the file in bytes')
-    )
-    file_type = models.CharField(
-        max_length=5,
-        verbose_name=_('File type'),
-        help_text=_('Type of file content')
-    )
-    file_content_type = models.CharField(
-        max_length=20,
-        verbose_name=_('File content type'),
-        help_text=_('Content type of file')
-    )
-    key = models.CharField(
-        max_length=255,
-        verbose_name=_('Key'),
-        help_text=_('Key of the file being uploaded')
-    )
-    last_modified = models.DateTimeField(
-        verbose_name=_('Last Modified'),
-        help_text=_('Last Modified Date')
-    )
-    # upload_id = models.CharField(
-    #     max_length=255,
-    #     verbose_name=_('Upload ID'),
-    #     help_text=_('Upload Id to identify each upload uniquely')
-    # )
-    # chunks_uploaded = models.TextField(
-    #     default='',
-    #     verbose_name=_('Chunks Uploaded'),
-    #     help_text=_('List of chunks that are uploaded to S3 server')
-    # )
+#     file_name = models.CharField(
+#         max_length=255,
+#         verbose_name=_('File name '),
+#         help_text=_('Name of the file with which user uploaded')
+#     )
+#     file_size = models.BigIntegerField(
+#         verbose_name=_('File size'),
+#         help_text=_('Size of the file in bytes')
+#     )
+#     file_type = models.CharField(
+#         max_length=5,
+#         verbose_name=_('File type'),
+#         help_text=_('Type of file content')
+#     )
+#     file_content_type = models.CharField(
+#         max_length=20,
+#         verbose_name=_('File content type'),
+#         help_text=_('Content type of file')
+#     )
+#     key = models.CharField(
+#         max_length=255,
+#         verbose_name=_('Key'),
+#         help_text=_('Key of the file being uploaded')
+#     )
+#     last_modified = models.DateTimeField(
+#         verbose_name=_('Last Modified'),
+#         help_text=_('Last Modified Date')
+#     )
+#     # upload_id = models.CharField(
+#     #     max_length=255,
+#     #     verbose_name=_('Upload ID'),
+#     #     help_text=_('Upload Id to identify each upload uniquely')
+#     # )
+#     # chunks_uploaded = models.TextField(
+#     #     default='',
+#     #     verbose_name=_('Chunks Uploaded'),
+#     #     help_text=_('List of chunks that are uploaded to S3 server')
+#     # )
 
-    def __str__(self):
-        return self.file_name
+#     def __str__(self):
+#         return self.file_name
 
-    def __repr__(self):
-        return '<S3FileUpload: {}>'.format(self.file_name)
+#     def __repr__(self):
+#         return '<S3FileUpload: {}>'.format(self.file_name)

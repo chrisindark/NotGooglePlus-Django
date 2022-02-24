@@ -1,17 +1,21 @@
 import json
+import requests
+
 from urllib.parse import parse_qsl
 
-import requests
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from apps.accounts.models import Account
-from apps.accounts.utils import UserEmailManager
-from apps.core.exceptions import ServiceUnavailable
-from requests_oauthlib import OAuth1
+
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
+
+# from requests_oauthlib import OAuth1
+
+from apps.accounts.models import Account
+from apps.accounts.utils import UserEmailManager
+from apps.core.exceptions import ServiceUnavailable
 
 from apps.accounts.constants import (
     GOOGLE_ACCESS_TOKEN_URL, GOOGLE_PEOPLE_API_URL,
@@ -30,7 +34,8 @@ ALPHANUMERIC = RegexValidator(
 
 class AccountSerializer(serializers.ModelSerializer):
     # email = serializers.EmailField(read_only=True, required=False)
-    username = serializers.CharField(required=False, validators=[ALPHANUMERIC], max_length=20, min_length=8)
+    username = serializers.CharField(required=False, validators=[
+                                     ALPHANUMERIC], max_length=20, min_length=8)
 
     class Meta:
         model = Account
@@ -51,14 +56,18 @@ class AccountSerializer(serializers.ModelSerializer):
 class AuthenticatedAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ('id', 'username', 'email', 'is_active', 'is_staff', 'created_at', 'updated_at',)
-        read_only_fields = ('username', 'email', 'is_active', 'is_staff', 'created_at', 'updated_at',)
+        fields = ('id', 'username', 'email', 'is_active',
+                  'is_staff', 'created_at', 'updated_at',)
+        read_only_fields = ('username', 'email', 'is_active',
+                            'is_staff', 'created_at', 'updated_at',)
 
 
 class AccountRegistrationSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True, max_length=255)
-    username = serializers.CharField(required=True, validators=[ALPHANUMERIC], max_length=20, min_length=8)
-    password = serializers.CharField(write_only=True, required=True, max_length=128, min_length=8)
+    username = serializers.CharField(required=True, validators=[
+                                     ALPHANUMERIC], max_length=20, min_length=8)
+    password = serializers.CharField(
+        write_only=True, required=True, max_length=128, min_length=8)
     confirm_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
@@ -97,11 +106,48 @@ class AccountRegistrationSerializer(serializers.ModelSerializer):
             username=validated_data.get('username')
         )
         user.set_password(validated_data.get('password'))
-        # set user as inactive to allow verification of email
+        # set user is active as false to allow verification of email
         user.is_active = True
         user.save()
 
         return user
+
+
+class LoginSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=255, write_only=True, required=True)
+    password = serializers.CharField(
+        max_length=128, write_only=True, required=True)
+    token = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Account
+        fields = ('username', 'password', 'token',)
+
+    def validate(self, data):
+        # The `validate` method is where we make sure that the current
+        # instance of `LoginSerializer` has "valid". In the case of logging a
+        # user in, this means validating that they've provided an email
+        # and password and that this combination matches one of the users in
+        # our database.
+        username = data.get('username', None)
+        password = data.get('password', None)
+        request = self.context.get('request')
+
+        account = authenticate(
+            request=request, username=username, password=password, allow_inactive=True)
+        if account is None:
+            msg = 'Unable to log in with provided credentials.'
+            raise serializers.ValidationError(msg, code='authorization')
+
+        if not account.is_active:
+            msg = 'The account has been deactivated.'
+            raise serializers.ValidationError(msg, code='authorization')
+
+        token, created = Token.objects.get_or_create(user=account)
+        data['token'] = token
+
+        return data
 
 
 class AccountActivateSerializer(serializers.ModelSerializer):
@@ -181,43 +227,11 @@ class AccountConfirmSerializer(serializers.ModelSerializer):
         return self.user
 
 
-class LoginSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=255, write_only=True, required=True)
-    password = serializers.CharField(max_length=128, write_only=True, required=True)
-    token = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = Account
-        fields = ('username', 'password', 'token',)
-
-    def validate(self, data):
-        # The `validate` method is where we make sure that the current
-        # instance of `LoginSerializer` has "valid". In the case of logging a
-        # user in, this means validating that they've provided an email
-        # and password and that this combination matches one of the users in
-        # our database.
-        username = data.get('username', None)
-        password = data.get('password', None)
-        request = self.context.get('request')
-
-        account = authenticate(request=request, username=username, password=password, allow_inactive=True)
-        if account is None:
-            msg = 'Unable to log in with provided credentials.'
-            raise serializers.ValidationError(msg, code='authorization')
-
-        if not account.is_active:
-            msg = 'The account has been deactivated.'
-            raise serializers.ValidationError(msg, code='authorization')
-
-        token, created = Token.objects.get_or_create(user=account)
-        data['token'] = token
-
-        return data
-
-
 class JWTSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=255, write_only=True, required=True)
-    password = serializers.CharField(max_length=128, write_only=True, required=True)
+    username = serializers.CharField(
+        max_length=255, write_only=True, required=True)
+    password = serializers.CharField(
+        max_length=128, write_only=True, required=True)
     token = serializers.CharField(read_only=True)
 
     class Meta:
@@ -234,7 +248,8 @@ class JWTSerializer(serializers.ModelSerializer):
         password = data.get('password', None)
         request = self.context.get('request')
 
-        account = authenticate(request=request, username=username, password=password, allow_inactive=True)
+        account = authenticate(
+            request=request, username=username, password=password, allow_inactive=True)
         if account is None:
             msg = 'Unable to log in with provided credentials.'
             raise serializers.ValidationError(msg, code='authorization')
@@ -249,8 +264,10 @@ class JWTSerializer(serializers.ModelSerializer):
 
 
 class PasswordChangeSerializer(serializers.ModelSerializer):
-    old_password = serializers.CharField(write_only=True, required=True, min_length=8)
-    new_password = serializers.CharField(write_only=True, required=True, min_length=8)
+    old_password = serializers.CharField(
+        write_only=True, required=True, min_length=8)
+    new_password = serializers.CharField(
+        write_only=True, required=True, min_length=8)
     confirm_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
@@ -331,7 +348,8 @@ class PasswordResetSerializer(serializers.ModelSerializer, UserEmailManager):
 
 
 class PasswordResetConfirmSerializer(serializers.ModelSerializer):
-    new_password = serializers.CharField(write_only=True, required=True, min_length=8)
+    new_password = serializers.CharField(
+        write_only=True, required=True, min_length=8)
     confirm_password = serializers.CharField(write_only=True, required=True)
     token = serializers.CharField(write_only=True, required=True)
 
