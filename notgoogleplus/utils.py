@@ -21,6 +21,7 @@ def posts_seeder():
         )
         pass
 
+
 # utility function to create random articles for random users
 def articles_seeder():
     import os
