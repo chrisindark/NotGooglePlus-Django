@@ -18,6 +18,7 @@ django-filter = "*"
 drf-yasg = "*"
 pyjwt = "*"
 django-redis = "*"
+celery = "*"
 
 [requires]
 python_version = "3.8"

@@ -1,17 +1,18 @@
-language: python # => 1
+language: # => 1
+  - python
 
-python: # => 2
+python:# => 2
   # - 2.7
-  - 3.6
+  # - 3.6
 
-services: # => 3
-  - mysql
+services:# => 3
+  # - mysql
 
-#env: # => 4
-  # - DJANGO="x.y.z"
+env: # => 4
+# - DJANGO="x.y.z"
 
-install: # => 5
-  - pip install -r requirements.txt
+install:# => 5
+  # - pip install -r requirements.txt
 
 before_script:
-  - python manage.py migrate
+  # - python manage.py migrate
