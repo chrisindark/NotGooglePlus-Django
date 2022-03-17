@@ -11,15 +11,17 @@ GENDER_CHOICES = (
 
 
 class Profile(TimestampedModel):
-    user = models.OneToOneField('accounts.Account', related_name='profile', on_delete=models.DO_NOTHING)
+    user = models.OneToOneField(
+        'accounts.Account', related_name='profile', on_delete=models.DO_NOTHING)
     first_name = models.CharField(max_length=20, blank=True, default='')
     last_name = models.CharField(max_length=20, blank=True, default='')
     nickname = models.CharField(max_length=20, blank=True, default='')
     dob = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, default='')
+    gender = models.IntegerField(max_length=1, null=True, default=None)
     tagline = models.CharField(max_length=140, blank=True, default='')
     bio = models.TextField(max_length=1000, blank=True, default='')
-    follows = models.ManyToManyField('self', blank=True, related_name='followed_by', symmetrical=False)
+    follows = models.ManyToManyField(
+        'self', blank=True, related_name='followed_by', symmetrical=False)
     image = models.URLField(null=True, blank=True)
 
     def __str__(self):

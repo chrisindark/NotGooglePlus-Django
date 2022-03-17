@@ -23,7 +23,7 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG', # message level to be written to console
+            'level': 'DEBUG',  # message level to be written to console
             # logging handler that outputs log messages to terminal
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
@@ -101,7 +101,7 @@ CORS_EXPOSE_HEADERS = (
     'Content-Disposition',
     'Content-Type',
     'Content-Length',
-    'App-Version',
+    'Notgoogleplus-App-Version',
 )
 CORS_ALLOW_HEADERS = default_headers + (
     'Content-Disposition',

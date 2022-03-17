@@ -29,7 +29,6 @@ class ModelJSONRenderer(JSONRenderer):
             })
 
 
-
 class ProfileJSONRenderer(ModelJSONRenderer):
     object_label = 'profile'
     pagination_object_label = 'profiles'

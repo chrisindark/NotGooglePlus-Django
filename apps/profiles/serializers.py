@@ -15,27 +15,38 @@ GENDER_CHOICES = (
 class ProfileSerializer(serializers.ModelSerializer):
     # user = AccountSerializer(read_only=True, required=False)
     # user = serializers.SerializerMethodField()
-    username = serializers.CharField(source='user.username', read_only=True, required=False)
+    username = serializers.CharField(
+        source='user.username', read_only=True, required=False)
     first_name = serializers.CharField(required=False, allow_blank=True,
                                        validators=[ALPHABET], max_length=20)
     last_name = serializers.CharField(required=False, allow_blank=True,
                                       validators=[ALPHABET], max_length=20)
     nickname = serializers.CharField(required=False, allow_blank=True,
                                      validators=[ALPHABET], max_length=20)
-    tagline = serializers.CharField(required=False, allow_blank=True, max_length=140)
-    bio = serializers.CharField(required=False, allow_blank=True, max_length=1000)
-    dob = serializers.DateField(required=False, allow_null=True)
-    gender = serializers.ChoiceField(required=False, allow_blank=True, choices=GENDER_CHOICES)
-    image = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    tagline = serializers.CharField(
+        required=False, allow_blank=True, max_length=140)
+    bio = serializers.CharField(
+        required=False, allow_blank=True, max_length=1000)
+    date_of_birth = serializers.DateField(required=False, allow_null=True)
+    gender = serializers.ChoiceField(
+        required=False, allow_blank=True, choices=GENDER_CHOICES)
+    image = serializers.CharField(
+        allow_null=True, allow_blank=True, required=False)
     following = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
         fields = (
-            'id', 'first_name', 'last_name',
-            'nickname', 'tagline',
-            'bio', 'dob', 'gender',
-            'username', 'image',
+            'id',
+            'first_name',
+            'last_name',
+            'nickname',
+            'tagline',
+            'bio',
+            'dob',
+            'gender',
+            'username',
+            'image',
             'following',
         )
         # read_only_fields = ('username',)
@@ -66,14 +77,24 @@ class ProfileFollowSerializer(ProfileSerializer):
 
     class Meta(ProfileSerializer.Meta):
         fields = (
-            # 'first_name', 'last_name', 'nickname', 'tagline',
-            # 'bio', 'dob', 'gender',
+            # 'first_name',
+            # 'last_name',
+            # 'nickname',
+            # 'tagline',
+            # 'bio',
+            # 'date_of_birth',
+            # 'gender',
             'follow',
             'following',
         )
         read_only_fields = (
-            # 'first_name', 'last_name', 'nickname', 'tagline',
-            # 'bio', 'dob', 'gender',
+            # 'first_name',
+            # 'last_name',
+            # 'nickname',
+            # 'tagline',
+            # 'bio',
+            # 'date_of_birth',
+            # 'gender',
         )
 
     def validate(self, data):

@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django_redis import get_redis_connection
 
 from apps.core.models import AppModel
 
@@ -7,9 +8,12 @@ class Command(BaseCommand):
     help = 'Updates version of application in database by providing major, minor and patch boolean flags.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--major', action='store_true', help='flag to increment major count by one')
-        parser.add_argument('--minor', action='store_true', help='flag to increment minor count by one')
-        parser.add_argument('--patch', action='store_true', help='flag to increment patch count by one')
+        parser.add_argument('--major', action='store_true',
+                            help='flag to increment major count by one')
+        parser.add_argument('--minor', action='store_true',
+                            help='flag to increment minor count by one')
+        parser.add_argument('--patch', action='store_true',
+                            help='flag to increment patch count by one')
 
     def handle(self, *args, **options):
         app_model = AppModel.objects.first()
@@ -27,6 +31,9 @@ class Command(BaseCommand):
         app_model_arr = '.'.join(app_model_arr)
         app_model.app_version = app_model_arr
         app_model.save()
+
+        redis_connection = get_redis_connection('default')
+        redis_connection.set('core:app_version', app_model_arr)
 
         self.stdout.write(self.style.SUCCESS(
             'Successfully updated app version to "%s"' % app_model.app_version

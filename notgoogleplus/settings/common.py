@@ -31,7 +31,7 @@ INSTALLED_APPS = (
     # 'sorl.thumbnail',
 
     'apps.accounts',
-    # 'apps.core',
+    'apps.core',
     # 'apps.profiles',
     # 'apps.posts',
     # 'apps.articles',
@@ -48,7 +48,7 @@ MIDDLEWARE = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    # 'notgoogleplus.middleware.AppVersionMiddleware',
+    'notgoogleplus.middleware.AppVersionMiddleware',
 )
 
 ROOT_URLCONF = 'notgoogleplus.urls'

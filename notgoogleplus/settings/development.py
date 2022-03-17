@@ -15,8 +15,6 @@ ALLOWED_HOSTS = (
     'localhost',
     '0.0.0.0',
     '127.0.0.1',
-    '172.16.9.234',
-    '192.168.1.104',
     'dev.notgoogleplus.com',
 )
 
@@ -126,7 +124,7 @@ CORS_EXPOSE_HEADERS = (
     'Content-Disposition',
     'Content-Type',
     'Content-Length',
-    'App-Version',
+    'Notgoogleplus-App-Version',
 )
 CORS_ALLOW_HEADERS = default_headers + (
     'Content-Disposition',
@@ -155,6 +153,16 @@ REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
 REDIS_HOST = "localhost"
 REDIS_PORT = "6379"
 REDIS_URL = 'redis://{0}:{1}'.format(REDIS_HOST, REDIS_PORT)
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
 
 CHANNEL_LAYERS = {
     'default': {

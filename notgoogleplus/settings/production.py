@@ -9,8 +9,10 @@ DATABASES = {
     'default': {}
 }
 
-STATIC_ROOT = os.path.abspath(os.path.join('/var/www/html/notgoogleplus/staging', STATIC_PATH))
-MEDIA_ROOT = os.path.abspath(os.path.join('/var/www/html/notgoogleplus/staging', MEDIA_PATH))
+STATIC_ROOT = os.path.abspath(os.path.join(
+    '/var/www/html/notgoogleplus/staging', STATIC_PATH))
+MEDIA_ROOT = os.path.abspath(os.path.join(
+    '/var/www/html/notgoogleplus/staging', MEDIA_PATH))
 
 CORS_ORIGIN_WHITELIST = ()
 CORS_ORIGIN_ALLOW_ALL = False
@@ -19,7 +21,7 @@ CORS_EXPOSE_HEADERS = (
     'Content-Disposition',
     'Content-Type',
     'Content-Length',
-    'App-Version',
+    'Notgoogleplus-App-Version',
 )
 CORS_ALLOW_HEADERS = default_headers + (
     'Content-Disposition',

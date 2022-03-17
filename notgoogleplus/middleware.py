@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import logging
 
 from django.db import connection
+from django_redis import get_redis_connection
 
-# from apps.core.models import AppModel
+from apps.core.models import AppModel
 
 logger = logging.getLogger(__name__)
 
@@ -65,13 +63,31 @@ class AppVersionMiddleware(object):
 
         # Code to be executed for each request/response after
         # the view is called.
-        # app_model = AppModel.objects.first()
-        # if app_model:
-        #     response['App-Version'] = app_model.app_version
-        # if request.session.get('app_version', False):
-        #     response['App-Version'] = request.session.get('app_version')
-        # else:
-        #     request.session['app_version'] = app_model.app_version
-        #     response['App-Version'] = request.session.get('app_version')
+
+        # get the app_version from redis
+        redis_connection = get_redis_connection('default')
+        try:
+            app_version = redis_connection.get('core:app_version')
+        except Exception as e:
+            app_version = None
+            logger.error(e)
+
+        if app_version:
+            response['Notgoogleplus-App-Version'] = app_version
+            return response
+
+        # get the app_version from db
+        app_model = AppModel.objects.first()
+        app_version = app_model.app_version
+        redis_connection.set('core:app_version', app_version)
+        if app_model:
+            response['Notgoogleplus-App-Version'] = app_version
+            request.session['notgoogleplus_app_version'] = app_version
+        # if request.session has app version, set it as it is, but dont understand why should we
+        elif request.session.get('notgoogleplus_app_version', False):
+            response['Notgoogleplus-App-Version'] = request.session.get(
+                'notgoogleplus_app_version')
+        else:
+            logger.error("AppModel isnt initiated.")
 
         return response
