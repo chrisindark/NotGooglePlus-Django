@@ -12,7 +12,7 @@ django-compressor==2.2
 django-celery-beat==1.0.1
 django-rest-swagger==2.1.2
 asgi-redis==1.4.3
-requests==2.21.0
+requests==2.31.0
 requests-oauthlib==0.8.0
 sorl-thumbnail==12.3
 django-haystack==2.6.1
