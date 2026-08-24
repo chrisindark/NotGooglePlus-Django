@@ -1,124 +1,199 @@
-from django.core.validators import RegexValidator
+import logging
+
 from rest_framework import serializers
 
-from .models import Profile
-
-
-ALPHABET = RegexValidator(r'^[a-zA-Z]*$', 'Only letters are allowed.')
-GENDER_CHOICES = (
-    ('M', 'Male'),
-    ('F', 'Female'),
-    ('O', 'Other'),
+from apps.profiles.constants import (
+    BIO_MAX_LENGTH,
+    DATE_OF_BIRTH_DATE_FORMAT,
+    NAME_MAX_LENGTH,
+    NAME_MIN_LENGTH,
+    TAGLINE_MAX_LENGTH,
 )
+from apps.users.serializers import UserSerializer
+from apps.users.validators import ALPHABET_VALIDATOR
+
+from .models import Gender, Profile
+
+logger = logging.getLogger(__name__)
+
+
+class BaseProfileSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField(read_only=True)
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related("user")
+        return queryset
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    # user = AccountSerializer(read_only=True, required=False)
-    # user = serializers.SerializerMethodField()
-    username = serializers.CharField(source='user.username', read_only=True, required=False)
-    first_name = serializers.CharField(required=False, allow_blank=True,
-                                       validators=[ALPHABET], max_length=20)
-    last_name = serializers.CharField(required=False, allow_blank=True,
-                                      validators=[ALPHABET], max_length=20)
-    nickname = serializers.CharField(required=False, allow_blank=True,
-                                     validators=[ALPHABET], max_length=20)
-    tagline = serializers.CharField(required=False, allow_blank=True, max_length=140)
-    bio = serializers.CharField(required=False, allow_blank=True, max_length=1000)
-    dob = serializers.DateField(required=False, allow_null=True)
-    gender = serializers.ChoiceField(required=False, allow_blank=True, choices=GENDER_CHOICES)
-    image = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    following = serializers.SerializerMethodField()
+    first_name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        validators=[ALPHABET_VALIDATOR],
+        max_length=NAME_MAX_LENGTH,
+        min_length=NAME_MIN_LENGTH,
+    )
+    last_name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        validators=[ALPHABET_VALIDATOR],
+        max_length=NAME_MAX_LENGTH,
+        min_length=NAME_MIN_LENGTH,
+    )
 
     class Meta:
         model = Profile
         fields = (
-            'id', 'first_name', 'last_name',
-            'nickname', 'tagline',
-            'bio', 'dob', 'gender',
-            'username', 'image',
-            'following',
+            "id",
+            "first_name",
+            "last_name",
+            "created_at",
+            "updated_at",
+            "user_id",
         )
-        # read_only_fields = ('username',)
-
-    # def get_user(self, instance):
-    #     request = self.context.get('request')
-    #     if request.user == instance:
-    #         serializer = AccountSerializer(instance.user, context={'request': request})
-    #         return serializer.data
-
-    def get_following(self, instance):
-        user = self.context.get('request').user
-        if not hasattr(user, 'profile'):
-            return False
-
-        # instance is the object of the user's profile we are viewing
-        followee = instance
-        return user.profile.is_following(followee)
-
-    @staticmethod
-    def setup_eager_loading(queryset):
-        queryset = queryset.select_related('user')
-        return queryset
-
-
-class ProfileFollowSerializer(ProfileSerializer):
-    follow = serializers.BooleanField(required=True, write_only=True)
-
-    class Meta(ProfileSerializer.Meta):
-        fields = (
-            # 'first_name', 'last_name', 'nickname', 'tagline',
-            # 'bio', 'dob', 'gender',
-            'follow',
-            'following',
-        )
-        read_only_fields = (
-            # 'first_name', 'last_name', 'nickname', 'tagline',
-            # 'bio', 'dob', 'gender',
-        )
+        read_only_fields = ("id", "created_at", "updated_at", "user_id")
 
     def validate(self, data):
-        user = self.context.get('request').user
-        followee = self.instance
-        if data.get('follow') is True and user.profile == followee:
-            raise serializers.ValidationError('You can not follow yourself.')
-        if data.get('follow') != user.profile.is_following(followee):
-            if data.get('follow'):
-                user.profile.follow(followee)
-            else:
-                user.profile.unfollow(followee)
+        logger.debug(f"Validating data: {data}")
 
         return data
 
-    # update function is overridden to stop the extra call to
-    # save() function of ModelSerializer for the model instance
+    def save(self):
+        pass
+
+
+class AuthorizedProfileSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        validators=[ALPHABET_VALIDATOR],
+        max_length=NAME_MAX_LENGTH,
+        min_length=NAME_MIN_LENGTH,
+    )
+    last_name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        validators=[ALPHABET_VALIDATOR],
+        max_length=NAME_MAX_LENGTH,
+        min_length=NAME_MIN_LENGTH,
+    )
+    nickname = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        validators=[ALPHABET_VALIDATOR],
+        max_length=NAME_MAX_LENGTH,
+        min_length=NAME_MIN_LENGTH,
+    )
+    date_of_birth = serializers.DateField(
+        format=DATE_OF_BIRTH_DATE_FORMAT,
+        input_formats=[DATE_OF_BIRTH_DATE_FORMAT, "iso-8601"],
+        required=False,
+        allow_null=True,
+    )
+    gender = serializers.ChoiceField(
+        required=False, allow_blank=True, choices=Gender.choices
+    )
+    tagline = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=TAGLINE_MAX_LENGTH,
+        min_length=NAME_MIN_LENGTH,
+    )
+    bio = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=BIO_MAX_LENGTH,
+        min_length=NAME_MIN_LENGTH,
+    )
+    username = serializers.SerializerMethodField(read_only=True)
+    following = serializers.SerializerMethodField(read_only=True)
+    follower = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "nickname",
+            "date_of_birth",
+            "gender",
+            "tagline",
+            "bio",
+            "created_at",
+            "updated_at",
+            "user_id",
+            "username",
+            "following",
+            "follower",
+        )
+        read_only_fields = ("id", "created_at", "updated_at", "username", "user_id")
+
+    def validate(self, data):
+        pass
+
+    def save(self):
+        pass
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = getattr(request, "user")
+        if request is None and user is None:
+            raise serializers.ValidationError("User is not authenticated.")
+
+        profile = Profile.objects.create(user=user, **validated_data)
+        return profile
+
     def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
         return instance
 
+    def get_following(self, instance):
+        request = self.context.get("request")
+        user = getattr(request, "user")
+        if request is None and user is None:
+            return None
 
-# class DynamicModelSerializer(serializers.ModelSerializer):
-# """
-# A ModelSerializer that takes an additional `fields` argument that
-# controls which fields should be displayed, and takes in a "nested"
-# argument to return nested serializers
-# """
+        if not hasattr(user, "profile"):
+            return False
 
-# def __init__(self, *args, **kwargs):
-#     fields = kwargs.pop("fields", None)
-#     exclude = kwargs.pop("exclude", None)
-#     nest = kwargs.pop("nest", None)
+        # instance is the object of the profile we are viewing
+        # check if the profile we are viewing is followed
+        # by the current logged in user
+        followee = instance
+        return user.profile.is_following(followee)
 
-    # if nest is not None and nest == True:
-    #     self.Meta.depth = 1
+    def get_follower(self, instance):  # method to check follower count in profile mode
+        request = self.context.get("request")
+        user = getattr(request, "user")
+        if request is None and user is None:
+            return None
 
-#     super(DynamicModelSerializer, self).__init__(*args, **kwargs)
+        if not hasattr(user, "profile"):
+            return False
 
-#     if fields is not None:
-#         # Drop any fields that are not specified in the `fields` argument.
-#         allowed = set(fields)
-#         existing = set(self.fields.keys())
-#         for field_name in existing - allowed:
-#             self.fields.pop(field_name)
+        return user.profile.is_follower(instance)
 
-#     if exclude is not None:
-#         for field_name in exclude:
-#             self.fields.pop(field_name)
+    def get_user(self, instance):
+        request = self.context.get("request")
+        user = getattr(request, "user")
+        if request is None and user is None:
+            return None
+
+        # instance is the object of the user's profile we are viewing
+        # if the profile being viewed is not of the current user, return None
+        if user.id == instance.user_id:
+            user_serializer = UserSerializer(user, context={"request": request})
+            return user_serializer.data
+
+    def get_username(self, instance):
+        request = self.context.get("request")
+        user = getattr(request, "user")
+        if request is None and user is None:
+            return None
+
+        return user.username

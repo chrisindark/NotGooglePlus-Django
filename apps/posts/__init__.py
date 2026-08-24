@@ -1,1 +1,1 @@
-default_app_config = 'apps.posts.apps.PostConfig'
+default_app_config = "apps.posts.apps.PostConfig"

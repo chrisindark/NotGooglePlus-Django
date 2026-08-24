@@ -1,0 +1,3 @@
+CORRELATION_ID_HEADER = "X-Correlation-ID"
+
+NOTGOOGLEPLUS_APP_VERSION_HEADER = "X-Notgoogleplus-App-Version"

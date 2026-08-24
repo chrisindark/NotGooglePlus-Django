@@ -1,33 +1,45 @@
 from django.core.management.base import BaseCommand
+from django_redis import get_redis_connection
 
-from apps.core.models import AppModel
+from apps.core.models import AppConfig
 
 
 class Command(BaseCommand):
-    help = 'Updates version of application in database by providing major, minor and patch boolean flags.'
+    help = "Updates version of application in database by providing major, minor and patch boolean flags."
 
-    def add_arguments(self, parser):
-        parser.add_argument('--major', action='store_true', help='flag to increment major count by one')
-        parser.add_argument('--minor', action='store_true', help='flag to increment minor count by one')
-        parser.add_argument('--patch', action='store_true', help='flag to increment patch count by one')
+    def add_arguments(self, parser) -> None:
+        parser.add_argument(
+            "--major", action="store_true", help="flag to increment major count by one"
+        )
+        parser.add_argument(
+            "--minor", action="store_true", help="flag to increment minor count by one"
+        )
+        parser.add_argument(
+            "--patch", action="store_true", help="flag to increment patch count by one"
+        )
 
-    def handle(self, *args, **options):
-        app_model = AppModel.objects.first()
+    def handle(self, *args, **options) -> None:
+        app_model = AppConfig.get_solo()
         if app_model is None:
-            app_model = AppModel.objects.create()
-        app_model_arr = app_model.app_version.split('.')
+            app_model = AppConfig.objects.create()
+        app_model_arr = app_model.app_version.split(".")
 
-        if options['major']:
+        if options["major"]:
             app_model_arr[0] = str(int(app_model_arr[0]) + 1)
-        if options['minor']:
+        if options["minor"]:
             app_model_arr[1] = str(int(app_model_arr[1]) + 1)
-        if options['patch']:
+        if options["patch"]:
             app_model_arr[2] = str(int(app_model_arr[2]) + 1)
 
-        app_model_arr = '.'.join(app_model_arr)
+        app_model_arr = ".".join(app_model_arr)
         app_model.app_version = app_model_arr
         app_model.save()
 
-        self.stdout.write(self.style.SUCCESS(
-            'Successfully updated app version to "%s"' % app_model.app_version
-        ))
+        redis_connection = get_redis_connection("default")
+        redis_connection.set("core:app_version", app_model_arr)
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Successfully updated app version to {app_model.app_version}"
+            )
+        )

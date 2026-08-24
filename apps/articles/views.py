@@ -1,145 +1,78 @@
-from rest_framework import viewsets, generics, pagination, mixins
-from rest_framework.exceptions import MethodNotAllowed
+import binascii
+import os
 
-from apps.core.views import *
-from apps.accounts.permissions import *
-from .filters import *
-from .serializers import *
+from django.shortcuts import get_object_or_404
+from django.template.defaultfilters import slugify
+from rest_framework import generics, permissions, viewsets
 
-
-# Create your views here.
-class TagViewSet(mixins.CreateModelMixin,
-                 mixins.RetrieveModelMixin,
-                 mixins.ListModelMixin,
-                 viewsets.GenericViewSet):
-    """
-    A simple ViewSet for viewing tags.
-    """
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-    pagination_class = None
-
-    def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.AllowAny(),)
-        return ()
-
-
-class ArticlePagination(pagination.PageNumberPagination):
-    # page_size = 20
-    page_size_query_param = 'page_size'
-    # max_page_size = 1000
+from apps.articles.constants import ARTICLE_SLUG_MAX_LENGTH
+from apps.articles.filters import ArticleFilter
+from apps.articles.models import Article
+from apps.articles.pagination import ArticlePagination
+from apps.articles.permissions import IsArticleOwner
+from apps.articles.serializers import ArticleSerializer
+from apps.core.mixins import ReadOnlyIdListMixin
+from apps.profiles.models import Profile
 
 
 # Create your views here.
 class ArticleViewSet(viewsets.ModelViewSet):
-    queryset = Article.objects.all()
+    queryset = Article.objects.all().order_by("-created_at")
     serializer_class = ArticleSerializer
     pagination_class = ArticlePagination
     filter_class = ArticleFilter
 
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(), IsOwner(),)
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated(), IsArticleOwner()]
 
     def get_queryset(self):
         # Set up eager loading to avoid N + 1 selects
         queryset = self.queryset
+        serializer_class = self.get_serializer_class()
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
-        queryset = self.get_serializer_class().annotate_comments_count(queryset)
-        queryset = self.get_serializer_class().annotate_likes_dislikes_count(queryset)
+        # queryset = self.get_serializer_class().annotate_comments_count(queryset)
+        # queryset = self.get_serializer_class().annotate_likes_dislikes_count(queryset)
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user.profile)
+        user = self.request.user
+        profile = get_object_or_404(Profile, user=user)
+        serializer.save(profile=profile)
+        self.create_slug(serializer.instance)
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        self.create_slug(serializer.instance)
+
+    # Logic to be removed and instead call model class function
+    def create_slug(self, article: Article):
+        if article.slug is not None and article.slug != "":
+            return article
+
+        slug = slugify(article.title)
+        unique = binascii.hexlify(os.urandom(20)).decode()
+        if len(slug) > ARTICLE_SLUG_MAX_LENGTH:
+            slug = slug[:ARTICLE_SLUG_MAX_LENGTH]
+        while len(slug + "-" + unique) > ARTICLE_SLUG_MAX_LENGTH:
+            parts = slug.split("-")
+            if len(parts) == 1:
+                slug = slug[: ARTICLE_SLUG_MAX_LENGTH - len(unique) - 1]
+            else:
+                slug = "-".join(parts[:-1])
+
+        final_slug = slug + "-" + unique
+
+        # final_slug = article.generate_slug(article.title)
+        # if final_slug == "":
+        #     return
+        article.slug = final_slug
+        article.save()
+        return article
 
 
-class ArticleIdListView(ModelIdListMixin):
+class ArticleIdListView(ReadOnlyIdListMixin, generics.ListAPIView):
     queryset = Article.objects.all()
     pagination_class = ArticlePagination
     filter_class = ArticleFilter
-
-
-class ArticleLikeMixin(generics.GenericAPIView):
-    queryset = ArticleLike.objects.all()
-    serializer_class = ArticleLikeSerializer
-
-    def get_queryset(self):
-        queryset = super(ArticleLikeMixin, self).get_queryset()
-        queryset = self.get_serializer_class().setup_eager_loading(queryset)
-        return queryset.filter(article__id=self.kwargs.get('article__id'))
-
-
-class ArticleLikeListCreateView(ArticleLikeMixin, generics.ListCreateAPIView):
-    def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(),)
-
-    def perform_create(self, serializer):
-        article = Article.objects.get(id=self.kwargs.get('article__id'))
-        serializer.save(user=self.request.user.profile, article=article)
-
-
-class ArticleCommentPagination(ArticlePagination):
-    pass
-
-
-class ArticleCommentMixin(generics.GenericAPIView):
-    queryset = ArticleComment.objects.all()
-    serializer_class = ArticleCommentSerializer
-    pagination_class = ArticleCommentPagination
-    filter_class = ArticleCommentFilter
-
-    def get_queryset(self):
-        queryset = super(ArticleCommentMixin, self).get_queryset()
-        queryset = self.get_serializer_class().setup_eager_loading(queryset)
-        return queryset.filter(article__id=self.kwargs.get('article__id'))
-
-    def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(), IsOwner(),)
-
-    def perform_create(self, serializer):
-        article = Article.objects.get(id=self.kwargs.get('article__id'))
-        serializer.save(user=self.request.user.profile, article=article)
-
-
-class ArticleCommentListCreateView(ArticleCommentMixin, generics.ListCreateAPIView):
-    pass
-    # def get_permissions(self):
-    #     if self.request.method in permissions.SAFE_METHODS:
-    #         return (permissions.AllowAny(),)
-    #     return (permissions.IsAuthenticated(),)
-
-
-class ArticleCommentDetailView(ArticleCommentMixin, generics.RetrieveUpdateDestroyAPIView):
-    pass
-    # def get_permissions(self):
-    #     if self.request.method in permissions.SAFE_METHODS:
-    #         return (permissions.AllowAny(),)
-    #     return (permissions.IsAuthenticated(), IsOwner(),)
-
-
-class ArticleCommentLikeListCreateView(generics.ListCreateAPIView):
-    queryset = ArticleCommentLike.objects.all()
-    serializer_class = ArticleCommentLikeSerializer
-
-    def get_queryset(self):
-        queryset = self.queryset
-        queryset = self.get_serializer_class().setup_eager_loading(queryset)
-        return queryset.filter(
-            article_comment__article__id=self.kwargs.get('article__id'),
-            article_comment__id=self.kwargs.get('pk')
-        )
-
-    def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(),)
-
-    def perform_create(self, serializer):
-        article_comment = ArticleComment.objects.get(id=self.kwargs.get('pk'))
-        serializer.save(user=self.request.user.profile, article_comment=article_comment)

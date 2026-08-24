@@ -1,6 +1,0 @@
--r common.txt
-
-haystack==0.42
-channels==1.1.8
-django-extensions==1.9.6
-django-debug-toolbar==1.8

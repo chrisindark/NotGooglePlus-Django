@@ -1,12 +1,14 @@
-from rest_framework.exceptions import APIException
-from rest_framework.status import HTTP_503_SERVICE_UNAVAILABLE
+import logging
+
+from rest_framework.exceptions import APIException, NotFound, ValidationError
+from rest_framework.response import Response
+from rest_framework.status import (
+    HTTP_500_INTERNAL_SERVER_ERROR,
+    HTTP_503_SERVICE_UNAVAILABLE,
+)
 from rest_framework.views import exception_handler
 
-
-class ServiceUnavailable(APIException):
-    status_code = HTTP_503_SERVICE_UNAVAILABLE
-    default_detail = 'Service temporarily unavailable, try again later.'
-    default_code = 'service_unavailable'
+logger = logging.getLogger(__name__)
 
 
 def custom_exception_handler(exc, context):
@@ -19,38 +21,111 @@ def custom_exception_handler(exc, context):
     # to get the standard error response.
     response = exception_handler(exc, context)
 
-    handlers = {
-        'NotFound': _handle_not_found_error,
-        'ValidationError': _handle_generic_error
+    # Log all exceptions
+    logger.error(f"Error: {exc}", exc_info=True)
+
+    if response is None:
+        # Unhandled exceptions (500)
+        return _handle_unexpected_error(exc)
+
+    if isinstance(exc, ValidationError):
+        return _handle_validation_error(exc, response)
+
+    if isinstance(exc, NotFound):
+        return _handle_not_found_error(exc, response)
+
+    return _format_response(
+        response=response,
+        message=_get_default_message(response),
+        error=exc.__class__.__name__,
+    )
+
+
+def _handle_validation_error(exc, response):
+    """
+    Flatten validation errors and standardize response.
+    """
+    details = _flatten_errors(response.data)
+
+    return _format_response(
+        response=response,
+        message="Validation failed",
+        error="ValidationError",
+        details=details,
+    )
+
+
+def _handle_not_found_error(exc, response):
+    return _format_response(
+        response=response,
+        message="Resource not found",
+        error="NotFound",
+    )
+
+
+def _handle_unexpected_error(exc):
+    """
+    Handle unhandled exceptions (500).
+    """
+    return _build_response(
+        status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+        message="Something went wrong",
+        error="InternalServerError",
+    )
+
+
+def _format_response(response, message=None, error=None, details=None):
+    """
+    Standardize response structure.
+    """
+    response.data = {
+        "status_code": response.status_code,
+        "error": error,
+        "message": message,
+        "details": details or response.data,
     }
-    # This is how we identify the type of the current exception. We will use
-    # this in a moment to see whether we should handle this exception or let
-    # Django REST Framework do it's thing.
-    exception_class = exc.__class__.__name__
-
-    if exception_class in handlers:
-        # If this exception is one that we can handle, handle it. Otherwise,
-        # return the response generated earlier by the default exception
-        # handler.
-        return handlers[exception_class](exc, context, response)
-
     return response
 
 
-def _handle_not_found_error(exc, context, response):
-    return response
+def _build_response(status_code, message, error, details=None):
+    """
+    Build fresh response (used for unhandled errors).
+    """
+
+    return Response(
+        {
+            "status_code": status_code,
+            "error": error,
+            "message": message,
+            "details": details or {},
+        },
+        status=status_code,
+    )
 
 
-def _handle_generic_error(exc, context, response):
-    # This is about the most straightforward exception handler we can create.
+def _flatten_errors(data):
+    """
+    Convert DRF error dict into a cleaner format.
+    Example:
+    {"email": ["This field is required."]} → {"email": "This field is required."}
+    """
+    if isinstance(data, dict):
+        return {key: _flatten_errors(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return data[0] if len(data) == 1 else data
+    return data
 
-    # We can add the HTTP status code to the response.
-    # response.data['status_code'] = response.status_code
 
-    # The array of validation errors is convert to string
-    if response is not None:
-        for key, value in response.data.items():
-            if isinstance(value, list):
-                response.data[key] = value[0]
+def _get_default_message(response):
+    """
+    Extract default message from DRF response.
+    """
+    if isinstance(response.data, dict):
+        return response.data.get("detail", "Error occurred")
+    return "Error occurred"
 
-    return response
+
+class ServiceUnavailable(APIException):
+    status_code = HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = "Service temporarily unavailable, try again later."
+    default_code = "service_unavailable"
