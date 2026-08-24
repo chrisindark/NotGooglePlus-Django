@@ -1,11 +1,12 @@
 import django_filters
 
-from .models import *
+from .models import Profile
 
 
 class ProfileFilter(django_filters.FilterSet):
     username = django_filters.CharFilter(
-        name="user__username", lookup_expr="startswith")
+        name="user__username", lookup_expr="startswith"
+    )
 
     class Meta:
         model = Profile

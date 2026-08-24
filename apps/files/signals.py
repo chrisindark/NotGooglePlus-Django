@@ -1,14 +1,12 @@
-import os
 import binascii
+import os
 
-from django.db.models.signals import pre_save, post_delete
+from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 
+from .constants import MAXIMUM_FILE_NAME_LENGTH
 from .models import FileUpload, file_directory_path_fn
-from .constants import (
-    MAXIMUM_FILE_NAME_LENGTH,
-)
 
 
 @receiver(post_delete, sender=FileUpload)
@@ -23,11 +21,11 @@ def auto_delete_media_file(sender, instance, **kwargs):
 
 
 def set_filename(instance):
-    filename_list = instance.file.name.split('.')
+    filename_list = instance.file.name.split(".")
     # remove the extension from the filename_list
     file_extension = filename_list.pop() if len(filename_list) > 0 else None
     # create the filename from the list
-    filename_list = ''.join(filename_list)
+    filename_list = "".join(filename_list)
     # slugify the filename
     slug = slugify(filename_list)
     unique = binascii.hexlify(os.urandom(20)).decode()
@@ -35,17 +33,17 @@ def set_filename(instance):
     while len(slug) > MAXIMUM_FILE_NAME_LENGTH:
         slug = slug[:MAXIMUM_FILE_NAME_LENGTH]
 
-    while len(slug + '-' + unique + '.' + file_extension) > MAXIMUM_FILE_NAME_LENGTH:
-        slug = slug[:MAXIMUM_FILE_NAME_LENGTH - len(unique + '.' + file_extension) - 1]
-    filename = slug + '-' + unique + '.' + file_extension
+    while len(slug + "-" + unique + "." + file_extension) > MAXIMUM_FILE_NAME_LENGTH:
+        slug = slug[: MAXIMUM_FILE_NAME_LENGTH - len(unique + "." + file_extension) - 1]
+    filename = slug + "-" + unique + "." + file_extension
 
     return filename
 
 
 @receiver(pre_save, sender=FileUpload)
 def check_file_pre_save(sender, **kwargs):
-    instance = kwargs.get('instance')
-    if instance.file_name:
+    instance: FileUpload | None = kwargs.get("instance")
+    if instance is None:
         return
 
     instance.file_name = set_filename(instance)

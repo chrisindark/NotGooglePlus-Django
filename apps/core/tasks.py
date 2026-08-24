@@ -1,7 +1,6 @@
 from celery import shared_task
 
 # from utils.mail import api_send_mail
-
 # from apps.core.sqsutility import SqsUtility
 from notgoogleplus.celery import app
 
@@ -33,7 +32,7 @@ def backoff(attempts):
     1, 2, 4, 8, 16, 32, ...
 
     """
-    return 2 ** attempts
+    return 2**attempts
 
 
 class BaseTask(app.Task):
@@ -44,12 +43,12 @@ class BaseTask(app.Task):
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         """Log the exceptions to sentry at retry."""
         # sentrycli.captureException(exc)
-        super(BaseTask, self).on_retry(exc, task_id, args, kwargs, einfo)
+        super().on_retry(exc, task_id, args, kwargs, einfo)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """Log the exceptions to sentry."""
         # sentrycli.captureException(exc)
-        super(BaseTask, self).on_failure(exc, task_id, args, kwargs, einfo)
+        super().on_failure(exc, task_id, args, kwargs, einfo)
 
 
 # sqs_utility = SqsUtility()
@@ -71,19 +70,21 @@ class BaseTask(app.Task):
 #             receipt_handle=response['Messages'][i]['ReceiptHandle'])
 
 
-@app.task(bind=True, default_retry_delay=300, max_retries=3, soft_time_limit=5, base=BaseTask)
+@app.task(
+    bind=True, default_retry_delay=300, max_retries=3, soft_time_limit=5, base=BaseTask
+)
 def send_mail(self, recipients, sender_email, subject, body):
     """Send a plaintext email with argument subject, sender and body to a list of recipients."""
     try:
         # data = api_send_mail(recipients, sender_email, subject, body)
         pass
-    except Exception as e:
+    except Exception:
         # No need to retry as the user provided an invalid input
         raise
-    except Exception as exc:
-        # Any other exception. Log the exception to sentry and retry in 10s.
-        # sentrycli.captureException()
-        self.retry(countdown=10, exc=exc)
+    # except Exception as exc:
+    # Any other exception. Log the exception to sentry and retry in 10s.
+    # sentrycli.captureException()
+    # self.retry(countdown=10, exc=exc)
     # return data
 
 

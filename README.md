@@ -41,6 +41,7 @@ Create a superuser:
 
 ```bash
 python manage.py createsuperuser
+python manage.py createsuperuser --username admin --email admin@example.com
 ```
 
 Collect static files from each of your applications into a single location:

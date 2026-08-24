@@ -1,19 +1,17 @@
 from uuid import uuid4
 
 from django.db import models
-from django.utils.translation import ugettext as _
 
-from apps.core.models import TimestampedModel
-from .constants import *
+from apps.common.models import TimestampedModel
 
-content_file_path = '{0}{1}'.format(
-    CONTENT_UPLOAD_PATH,
-    uuid4()
-)
-preview_file_path = '{0}{1}'.format(
+from .constants import (
     CONTENT_PREVIEW_UPLOAD_PATH,
-    uuid4()
+    CONTENT_UPLOAD_PATH,
+    S3_UPLOAD_FILE_TYPE_CHOICES,
 )
+
+content_file_path = f"{CONTENT_UPLOAD_PATH}{uuid4()}"
+preview_file_path = f"{CONTENT_PREVIEW_UPLOAD_PATH}{uuid4()}"
 
 
 # Create your models here.
@@ -27,132 +25,98 @@ class S3FileUpload(TimestampedModel):
 
     file_name = models.CharField(
         max_length=255,
-        verbose_name=_('File name '),
-        help_text=_('Name of the file with which user uploaded')
     )
-    file_size = models.IntegerField(
-        verbose_name=_('File size'),
-        help_text=_('Size of the file in bytes')
-    )
+    file_size = models.BigIntegerField()
     file_type = models.IntegerField(
         choices=S3_UPLOAD_FILE_TYPE_CHOICES,
-        verbose_name=_('Preview file or Content file')
+    )
+    file_content_type = models.CharField(
+        max_length=20,
     )
     key = models.CharField(
         max_length=255,
-        verbose_name=_('Key'),
-        help_text=_('Key of the file being uploaded')
     )
-    last_modified = models.BigIntegerField(
-        verbose_name=_('Last Modified'),
-        help_text=_('Last Modified Date in seconds')
+    last_modified_at = models.DateTimeField()
+    uploaded_by = models.ForeignKey(
+        "profiles.Profile", related_name="s3_file_uploads", on_delete=models.DO_NOTHING
     )
-    # upload_id = models.CharField(
-    #     max_length=255,
-    #     verbose_name=_('Upload ID'),
-    #     help_text=_('Upload Id to identify each upload uniquely')
-    # )
-    # chunks_uploaded = models.TextField(
-    #     default='',
-    #     verbose_name=_('Chunks Uploaded'),
-    #     help_text=_('List of chunks that are uploaded to S3 server')
-    # )
+    upload_id = models.CharField(
+        max_length=255,
+    )
+    chunks_uploaded = models.JSONField(
+        default="",
+    )
 
     def __str__(self):
         return self.file_name
 
     def __repr__(self):
-        return '<S3MultipartUpload: {}>'.format(self.file_name)
+        return f"<S3MultipartUpload: {self.file_name}>"
 
 
 class Content(TimestampedModel):
     """The class is used for storing content information."""
 
-    user = models.ForeignKey(
-        'profiles.Profile',
-        verbose_name=_('Profile'),
-        related_name='profile_content_downloads'
+    profile = models.ForeignKey(
+        "profiles.Profile",
+        related_name="content_downloads",
+        on_delete=models.DO_NOTHING,
     )
     title = models.CharField(
         max_length=255,
         null=True,
         blank=True,
-        verbose_name=_('Content name'),
-        help_text=_('Title used as text for this content type')
     )
     slug = models.SlugField(
         max_length=50,
         unique=True,
         null=True,
         blank=True,
-        help_text='Unique content URL, created from title.',
-        verbose_name='Url for the content'
     )
-    description = models.TextField(
-        default="",
-        null=True,
-        blank=True,
-        help_text=_("Text to describe the content")
+    description = models.TextField(default="", null=True, blank=True)
+    s3_file = models.ForeignKey(
+        "S3FileUpload",
+        related_name="s3_file",
+        on_delete=models.DO_NOTHING,
     )
-    s3_file = models.OneToOneField(
-        S3FileUpload,
-        verbose_name='Uploaded Content',
-        help_text=_('uploaded_content')
-    )
-    content_price = models.DecimalField(
-        max_digits=9,
-        decimal_places=2,
-        verbose_name=_("Content Cost"),
-        help_text=_("Price for the content"),
-    )
+    # is_active = models.BooleanField(default=True)
+    # content_price = models.DecimalField(
+    #     max_digits=9,
+    #     decimal_places=2,
+    # )
     # content_file_type = models.IntegerField(
     #     choices=S3_UPLOAD_FILE_TYPE_CHOICES,
-    #     verbose_name=_('Preview file or Content file')
     # )
     # content_type = models.IntegerField(
     #     choices=CONTENT_TYPE_CHOICES,
-    #     verbose_name=_("Type of content being uploaded")
     # )
     # content_duration = models.IntegerField(
     #     null=True,
     #     blank=True,
     #     choices=VIDEO_LENGTH_CHOICES,
-    #     verbose_name=_("File duration in case of audio or video")
     # )
     # uploaded_on = models.DateTimeField(
     #     auto_now_add=True
     # )
-    number_of_downloads = models.IntegerField(
-        default=0,
-        verbose_name=_("Number of times this content got downloaded")
-    )
-    is_active = models.BooleanField(
-        default=True,
-        help_text=_("Active content is only shown to the user")
-    )
-    average_rating = models.IntegerField(
-        default=0,
-        verbose_name=_("Current average rating of the content")
-    )
+    # number_of_downloads = models.IntegerField(
+    #     default=0
+    # )
     # content_file = models.FileField(
-    #     verbose_name=_('Content File'),
     #     upload_to=CONTENT_UPLOAD_PATH,
     #     null=True
     # )
     # preview_file = models.FileField(
-    #     verbose_name=_('Preview File'),
     #     upload_to=CONTENT_PREVIEW_UPLOAD_PATH,
     #     null=True
     # )
     # thumbnail = models.ImageField(
-    #     verbose_name=_('Thumbnail Image'),
     #     upload_to=CONTENT_THUMBNAIL_UPLOAD_PATH,
     # )
     # thumbnails = models.CharField(
-    #     verbose_name=_('Content File thumbnail data'),
     #     blank=True,
     #     null=True
     # )
+    # average_rating = models.IntegerField(default=0)
 
     # def populate_thumbnail(self):
     #     if self.thumbnails is None:
@@ -175,10 +139,10 @@ class Content(TimestampedModel):
     #
     def __str__(self):
         return self.s3_file
-    
+
     def __repr__(self):
-        return '<Content: {}>'.format(self.s3_file)
-    
+        return f"<Content: {self.s3_file}>"
+
     # def get_preview_download_link(self):
     #     if not self.preview_file:
     #         return None
@@ -198,7 +162,7 @@ class Content(TimestampedModel):
     #         return fetch_url
     #     except Exception as e:
     #         return e
-    
+
     # def get_content_download_link(self):
     #     try:
     #         aws_utility = AwsUtility()

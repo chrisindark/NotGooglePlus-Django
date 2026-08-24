@@ -1,13 +1,44 @@
+# Python
+*.py[cod]
+*$py.class
 *.py~
-*.pyc
-*.pyc~
-__pycache__
+*.so
+__pycache__/
+.venv/
+venv/
+env/
 
+# Environment variables
 .env
-media
-static
-db.sqlite3
-celerybeat-schedule
+.env.*
 
-.idea
-.vscode
+# Django
+db.sqlite3
+db.sqlite3-journal
+media/
+static/
+staticfiles/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# IDEs and OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Build and Logs
+dist/
+*.log
+
+# Custom / Infrastructure
+localstack/
+apps/core/management/commands/data/*.csv
+
+posts.json
+articles.csv
+seed_users.csv

@@ -1,17 +1,35 @@
-from django.conf.urls import include, url
+from django.urls import path
 
-# from rest_framework import routers
-
-from .views import *
-
-
-# router = routers.SimpleRouter()
-# router.register(r'profiles', ProfileViewSet)
+from .views import (
+    AuthorizedProfileView,
+    ProfileCreateView,
+    ProfileDeleteView,
+    ProfileListView,
+    ProfileRetrieveDetailView,
+    ProfileUpdateView,
+)
 
 urlpatterns = (
-    url(r'profiles/$', ProfileListView.as_view(), name='account-profile-list'),
-    url(r'profiles/(?P<user__username>[^/.]+)/$', ProfileDetailView.as_view(),
-        name='account-profile-detail'),
-    url(r'profiles/(?P<user__username>[^/.]+)/follow/$', ProfileFollowView.as_view(),
-        name='account-profile-follow'),
+    path("", ProfileListView().as_view(), name="user-profile-list"),
+    path("create/", ProfileCreateView().as_view(), name="user-profile-create"),
+    path(
+        "<int:pk>/",
+        ProfileRetrieveDetailView().as_view(),
+        name="user-profile-retrieve-detail",
+    ),
+    path(
+        "<int:pk>/update/",
+        ProfileUpdateView().as_view(),
+        name="user-profile-update",
+    ),
+    path(
+        "<int:pk>/delete/",
+        ProfileDeleteView().as_view(),
+        name="user-profile-delete",
+    ),
+    path("me/", AuthorizedProfileView().as_view(), name="user-profile-me"),
+    # path('profiles/(?P<user__username>[^/.]+)/', ProfileDetailView().as_view(),
+    # name='user-profile-detail'),
+    # path('profiles/(?P<user__username>[^/.]+)/follow/', ProfileFollowView.as_view(),
+    #     name='user-profile-follow'),
 )
