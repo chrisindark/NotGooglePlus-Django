@@ -61,7 +61,7 @@ INSTALLED_APPS = (
     "apps.audio_posts",
     "apps.audio_articles",
     "apps.cron_tasks",
-    # "apps.transcriptions",
+    "apps.transcriptions",
     # "apps.evaluations",
     # 'apps.files',
 )

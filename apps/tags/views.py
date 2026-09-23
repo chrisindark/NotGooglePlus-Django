@@ -37,14 +37,12 @@ class TagViewSet(
         return [permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):
-        print("perform_create", serializer.validated_data)
         user = self.request.user
         profile = get_object_or_404(Profile, user=user)
         serializer.save(created_by=profile)
         self.create_slug(serializer.instance)
 
     def perform_update(self, serializer):
-        print("perform_update", serializer.validated_data)
         user = self.request.user
         profile = get_object_or_404(Profile, user=user)
         serializer.save(updated_by=profile)
@@ -61,7 +59,7 @@ class TagViewSet(
         while len(slug + "-" + unique) > TAG_SLUG_MAX_LENGTH:
             parts = slug.split("-")
             if len(parts) == 1:
-                slug = slug[:TAG_SLUG_MAX_LENGTH - len(unique) - 1]
+                slug = slug[: TAG_SLUG_MAX_LENGTH - len(unique) - 1]
             else:
                 slug = "-".join(parts[:-1])
 

@@ -1,31 +1,34 @@
 import logging
+import os
+import random
+import subprocess
+import tempfile
 from io import BytesIO
 from uuid import uuid4
 
-from gtts import gTTS
-
-from apps.audio_posts.constants import (AUDIO_OUTPUT_FORMAT_MP3,
-                                        AUDIO_OUTPUT_FORMAT_OGG,
-                                        AUDIO_OUTPUT_FORMAT_PCM)
+from apps.audio_posts.constants import (
+    AUDIO_OUTPUT_FORMAT_MP3,
+    AUDIO_OUTPUT_FORMAT_OGG,
+    AUDIO_OUTPUT_FORMAT_PCM,
+)
 from apps.core.aws_s3_service import AwsS3Service
 
 logger = logging.getLogger(__name__)
 
 
-
-
-
-import os
-import random
-import subprocess
-import tempfile
-
-
 class GTtsService:
-    default_format = 'mp3'
-    def synthesize(self, text: str, lang: str = "en", output_format: str = AUDIO_OUTPUT_FORMAT_MP3, **kwargs) -> bytes:
+    default_format = "mp3"
+
+    def synthesize(
+        self,
+        text: str,
+        lang: str = "en",
+        output_format: str = AUDIO_OUTPUT_FORMAT_MP3,
+        **kwargs,
+    ) -> bytes:
         try:
             from gtts import gTTS
+
             tts = gTTS(text=text, lang=lang)
             fp = BytesIO()
             tts.write_to_fp(fp)
@@ -35,15 +38,27 @@ class GTtsService:
             logger.exception("Unexpected error during gTTS synthesis")
             raise
 
+
 class Pyttsx3Service:
     import sys
-    default_format = 'aiff' if sys.platform == 'darwin' else 'wav'
-    def synthesize(self, text: str, lang: str = "en", output_format: str = AUDIO_OUTPUT_FORMAT_MP3, **kwargs) -> bytes:
+
+    default_format = "aiff" if sys.platform == "darwin" else "wav"
+
+    def synthesize(
+        self,
+        text: str,
+        lang: str = "en",
+        output_format: str = AUDIO_OUTPUT_FORMAT_MP3,
+        **kwargs,
+    ) -> bytes:
         try:
             import pyttsx3
+
             engine = pyttsx3.init()
             # Note: pyttsx3 typically outputs wav or native format depending on OS.
-            with tempfile.NamedTemporaryFile(suffix=f".{self.default_format}", delete=False) as f:
+            with tempfile.NamedTemporaryFile(
+                suffix=f".{self.default_format}", delete=False
+            ) as f:
                 temp_path = f.name
             try:
                 engine.save_to_file(text, temp_path)
@@ -57,37 +72,61 @@ class Pyttsx3Service:
             logger.exception("Unexpected error during pyttsx3 synthesis")
             raise
 
+
 class PiperTtsService:
-    default_format = 'wav'
-    def synthesize(self, text: str, lang: str = "en", output_format: str = AUDIO_OUTPUT_FORMAT_MP3, **kwargs) -> bytes:
+    default_format = "wav"
+
+    def synthesize(
+        self,
+        text: str,
+        lang: str = "en",
+        output_format: str = AUDIO_OUTPUT_FORMAT_MP3,
+        **kwargs,
+    ) -> bytes:
         try:
             default_model = "en_US-lessac-medium"
-            model_path = kwargs.get("piper_model", os.getenv("PIPER_MODEL_PATH", f"{default_model}.onnx"))
-            
+            model_path = kwargs.get(
+                "piper_model", os.getenv("PIPER_MODEL_PATH", f"{default_model}.onnx")
+            )
+
             if not os.path.exists(model_path):
                 import sys
-                logger.info(f"Downloading Piper model {default_model} because {model_path} was not found.")
+
+                logger.info(
+                    f"Downloading Piper model {default_model} because {model_path} was not found."
+                )
                 # Uses the current python executable (poetry environment)
-                subprocess.run([sys.executable, "-m", "piper.download_voices", default_model], check=True)
-            with tempfile.NamedTemporaryFile(suffix=f".wav", delete=False) as f:
+                subprocess.run(
+                    [sys.executable, "-m", "piper.download_voices", default_model],
+                    check=True,
+                )
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 temp_path = f.name
-            
+
             try:
                 process = subprocess.Popen(
-                    ['piper', '-m', model_path, '-f', temp_path],
+                    ["piper", "-m", model_path, "-f", temp_path],
                     stdin=subprocess.PIPE,
-                    stderr=subprocess.PIPE
+                    stderr=subprocess.PIPE,
                 )
-                out, err = process.communicate(input=text.encode('utf-8'))
+                out, err = process.communicate(input=text.encode("utf-8"))
                 if process.returncode != 0:
-                    err_output = err.decode('utf-8', errors='ignore')
+                    err_output = err.decode("utf-8", errors="ignore")
                     # ONNX Runtime on macOS has a known issue where it crashes during process teardown
                     # with a recursive_mutex error (exit code -6). If the file was generated, we can ignore it.
-                    if process.returncode == -6 and "recursive_mutex lock failed" in err_output and os.path.getsize(temp_path) > 0:
-                        logger.warning("Piper exited with code -6 (known ONNX Runtime teardown issue on macOS), but audio was generated.")
+                    if (
+                        process.returncode == -6
+                        and "recursive_mutex lock failed" in err_output
+                        and os.path.getsize(temp_path) > 0
+                    ):
+                        logger.warning(
+                            "Piper exited with code -6 (known ONNX Runtime teardown issue on macOS), but audio was generated."
+                        )
                     else:
-                        raise RuntimeError(f"Piper failed with code {process.returncode}: {err_output}")
-                
+                        raise RuntimeError(
+                            f"Piper failed with code {process.returncode}: {err_output}"
+                        )
+
                 with open(temp_path, "rb") as f:
                     return f.read()
             finally:
@@ -108,6 +147,7 @@ def get_random_tts_service():
     logger.info(f"Randomly selected TTS service: {selected.__class__.__name__}")
     return selected
 
+
 class AudioStorageService:
     CONTENT_TYPE_BY_FORMAT = {
         AUDIO_OUTPUT_FORMAT_MP3: "audio/mpeg",
@@ -126,7 +166,9 @@ class AudioStorageService:
             logger.exception("Failed to download audio file from S3 for key=%s", key)
             raise
 
-    def upload_bytes(self, audio_bytes: bytes, key: str, output_format: str = AUDIO_OUTPUT_FORMAT_MP3) -> str:
+    def upload_bytes(
+        self, audio_bytes: bytes, key: str, output_format: str = AUDIO_OUTPUT_FORMAT_MP3
+    ) -> str:
         content_type = self.CONTENT_TYPE_BY_FORMAT.get(
             output_format, "application/octet-stream"
         )
@@ -158,20 +200,25 @@ class AudioGenerationService:
         lang: str = "en",
         **kwargs,
     ) -> tuple[bytes, str]:
-        output_format = getattr(self.tts_service, 'default_format', AUDIO_OUTPUT_FORMAT_MP3)
+        output_format = getattr(
+            self.tts_service, "default_format", AUDIO_OUTPUT_FORMAT_MP3
+        )
         audio_bytes = self.tts_service.synthesize(
             text, lang=lang, output_format=output_format, **kwargs
         )
 
         return audio_bytes, output_format
 
-    def upload_to_s3(self, audio_bytes: bytes,
+    def upload_to_s3(
+        self,
+        audio_bytes: bytes,
         title: str | None = None,
         output_format: str = AUDIO_OUTPUT_FORMAT_MP3,
-        folder_prefix: str = "audio/tts"
+        folder_prefix: str = "audio/tts",
     ):
         from django.utils.text import slugify
-        safe_title = slugify(title) if title else 'audio'
+
+        safe_title = slugify(title) if title else "audio"
         file_name = f"{safe_title}-{uuid4()}.{output_format}"
         key = f"{folder_prefix}/{file_name}"
 

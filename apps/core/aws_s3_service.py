@@ -230,7 +230,9 @@ class AwsS3Service:
 
     def download_fileobj(self, key, download_path):
         try:
-            return self.client.download_file(Bucket=self.bucket, Key=key, Filename=download_path)
+            return self.client.download_file(
+                Bucket=self.bucket, Key=key, Filename=download_path
+            )
         except ClientError as e:
             logger.error(f"Failed to download file object: {e}")
             raise RuntimeError(f"Failed to download file object: {e}")
