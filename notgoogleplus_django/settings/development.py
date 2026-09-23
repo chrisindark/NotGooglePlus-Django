@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from corsheaders.defaults import default_headers
 
@@ -25,6 +26,7 @@ DEBUG = get_env_var("DEBUG", False)
 
 APPEND_SLASH = True
 
+LOGGING["loggers"][""]["level"] = "DEBUG"
 LOGGING["loggers"]["django.db"]["level"] = "DEBUG"
 
 
@@ -91,6 +93,17 @@ CSRF_COOKIE_SECURE = False
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "http")
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": False,
+
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": get_env_var("SECRET_KEY", default="secret-key"),
+}
+
 # EMAIL SETTINGS
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -145,16 +158,18 @@ AWS_S3_USE_SSL = get_env_var("AWS_S3_USE_SSL", False)
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 # CELERY SETTINGS
-# CELERY_BROKER_URL = REDIS_URL
-# CELERY_RESULT_BACKEND = REDIS_URL
-# CELERY_ACCEPT_CONTENT = ['json']
-# CELERY_TASK_SERIALIZER = 'json'
-# CELERY_RESULT_SERIALIZER = 'json'
-# CELERY_TIMEZONE = 'UTC'
+CELERY_BROKER_URL = f"{REDIS_URL}/1"
+CELERY_RESULT_BACKEND = f"{REDIS_URL}/1"
+CELERY_TIMEZONE = 'UTC'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 # CELERY_TASK_CREATE_MISSING_QUEUES = True
+# CELERY_TASK_TRACK_STARTED = True
+# CELERY_TASK_TIME_LIMIT = 30 * 60
+# CELERYD_TASK_SOFT_TIME_LIMIT = 300
 # CELERYD_PREFETCH_MULTIPLIER = 1
 # CELERY_IGNORE_RESULT = True
-# CELERYD_TASK_SOFT_TIME_LIMIT = 300
 
 # HAYSTACK_CONNECTIONS = {
 #     'default': {

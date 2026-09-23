@@ -17,10 +17,10 @@ def posts_seeder():
         content = title * 4
         users = Profile.objects.all()
         u_count = users.count()
-        logger.debug(f"User count: {u_count}")
+        logger.info(f"User count: {u_count}")
         user = choice(users)
         post = Post.objects.create(title=title, content=content, user=user)
-        logger.debug(f"Post created successfully: {post.pk}")
+        logger.info(f"Post created successfully: {post.pk}")
         pass
 
 
@@ -32,10 +32,10 @@ def articles_seeder():
         content = title * 8
         users = Profile.objects.all()
         u_count = users.count()
-        logger.debug(f"User count: {u_count}")
+        logger.info(f"User count: {u_count}")
         user = choice(users)
         article = Article.objects.create(
             title=title, description=description, content=content, user=user
         )
-        logger.debug(f"Article created successfully: {article.pk}")
+        logger.info(f"Article created successfully: {article.pk}")
         pass

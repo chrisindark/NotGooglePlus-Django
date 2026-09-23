@@ -6,12 +6,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from apps.users.constants import (
-    PASSWORD_MAX_LENGTH,
-    PASSWORD_MIN_LENGTH,
-    USERNAME_MAX_LENGTH,
-    USERNAME_MIN_LENGTH,
-)
+from apps.users.constants import (PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH,
+                                  USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH)
 from apps.users.models import User
 from apps.users.utils import UserEmailManager
 from apps.users.validators import ALPHANUMERIC_VALIDATOR
@@ -449,6 +445,6 @@ class PasswordResetConfirmSerializer(serializers.ModelSerializer):
 
         # delete the token for the user if it exists
         (count, tokens) = Token.objects.filter(user_id=self.user.id).delete()
-        logger.debug(f"Tokens deleted count: ${count} and tokens: ${tokens}")
+        logger.info(f"Tokens deleted count: ${count} and tokens: ${tokens}")
 
         return self.user

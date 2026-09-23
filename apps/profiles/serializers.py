@@ -2,13 +2,9 @@ import logging
 
 from rest_framework import serializers
 
-from apps.profiles.constants import (
-    BIO_MAX_LENGTH,
-    DATE_OF_BIRTH_DATE_FORMAT,
-    NAME_MAX_LENGTH,
-    NAME_MIN_LENGTH,
-    TAGLINE_MAX_LENGTH,
-)
+from apps.profiles.constants import (BIO_MAX_LENGTH, DATE_OF_BIRTH_DATE_FORMAT,
+                                     NAME_MAX_LENGTH, NAME_MIN_LENGTH,
+                                     TAGLINE_MAX_LENGTH)
 from apps.users.serializers import UserSerializer
 from apps.users.validators import ALPHABET_VALIDATOR
 
@@ -55,7 +51,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at", "updated_at", "user_id")
 
     def validate(self, data):
-        logger.debug(f"Validating data: {data}")
+        logger.info(f"Validating data: {data}")
 
         return data
 

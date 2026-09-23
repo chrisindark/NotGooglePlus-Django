@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   web:
     build: .
@@ -11,6 +9,8 @@ services:
       - "8000:8000"
     env_file:
       - notgoogleplus_django/.env.development
+    environment:
+      - AWS_S3_ENDPOINT_URL=http://localstack:4566
     depends_on:
       # - db
       - redis
@@ -52,5 +52,19 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - ./scripts/init-localstack-s3.sh:/etc/localstack/init/ready.d/init-localstack-s3.sh
 
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse_dev
+    ports:
+      - "8123:8123" # HTTP port
+      - "9000:9000" # Native port
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
 volumes:
   mysql_data:
+  clickhouse_data:

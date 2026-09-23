@@ -58,7 +58,11 @@ INSTALLED_APPS = (
     "apps.posts",
     "apps.tags",
     "apps.articles",
-    # "apps.audio_posts",
+    "apps.audio_posts",
+    "apps.audio_articles",
+    "apps.cron_tasks",
+    # "apps.transcriptions",
+    # "apps.evaluations",
     # 'apps.files',
 )
 

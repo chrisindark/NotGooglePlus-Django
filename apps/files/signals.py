@@ -1,59 +1,59 @@
-import binascii
-import os
+# import binascii
+# import os
 
-from django.db.models.signals import post_delete, pre_save
-from django.dispatch import receiver
-from django.utils.text import slugify
+# from django.db.models.signals import post_delete, pre_save
+# from django.dispatch import receiver
+# from django.utils.text import slugify
 
-from .constants import MAXIMUM_FILE_NAME_LENGTH
-from .models import FileUpload, file_directory_path_fn
-
-
-@receiver(post_delete, sender=FileUpload)
-def auto_delete_media_file(sender, instance, **kwargs):
-    """
-    Deletes file object from filesystem
-    when corresponding file record is deleted.
-    """
-    if instance.file:
-        if os.path.isfile(instance.file.path):
-            os.remove(instance.file.path)
+# from .constants import MAXIMUM_FILE_NAME_LENGTH
+# from .models import FileUpload, file_directory_path_fn
 
 
-def set_filename(instance):
-    filename_list = instance.file.name.split(".")
-    # remove the extension from the filename_list
-    file_extension = filename_list.pop() if len(filename_list) > 0 else None
-    # create the filename from the list
-    filename_list = "".join(filename_list)
-    # slugify the filename
-    slug = slugify(filename_list)
-    unique = binascii.hexlify(os.urandom(20)).decode()
-
-    while len(slug) > MAXIMUM_FILE_NAME_LENGTH:
-        slug = slug[:MAXIMUM_FILE_NAME_LENGTH]
-
-    while len(slug + "-" + unique + "." + file_extension) > MAXIMUM_FILE_NAME_LENGTH:
-        slug = slug[: MAXIMUM_FILE_NAME_LENGTH - len(unique + "." + file_extension) - 1]
-    filename = slug + "-" + unique + "." + file_extension
-
-    return filename
+# @receiver(post_delete, sender=FileUpload)
+# def auto_delete_media_file(sender, instance, **kwargs):
+#     """
+#     Deletes file object from filesystem
+#     when corresponding file record is deleted.
+#     """
+#     if instance.file:
+#         if os.path.isfile(instance.file.path):
+#             os.remove(instance.file.path)
 
 
-@receiver(pre_save, sender=FileUpload)
-def check_file_pre_save(sender, **kwargs):
-    instance: FileUpload | None = kwargs.get("instance")
-    if instance is None:
-        return
+# def set_filename(instance):
+#     filename_list = instance.file.name.split(".")
+#     # remove the extension from the filename_list
+#     file_extension = filename_list.pop() if len(filename_list) > 0 else None
+#     # create the filename from the list
+#     filename_list = "".join(filename_list)
+#     # slugify the filename
+#     slug = slugify(filename_list)
+#     unique = binascii.hexlify(os.urandom(20)).decode()
 
-    instance.file_name = set_filename(instance)
-    # instance.file is the property,
-    # instance.file.file is the file object.
-    instance.file_content_type = instance.file.file.content_type
-    instance.file_size = instance.file.file.size
-    instance.file_path = file_directory_path_fn(instance)
+#     while len(slug) > MAXIMUM_FILE_NAME_LENGTH:
+#         slug = slug[:MAXIMUM_FILE_NAME_LENGTH]
 
-    return instance
+#     while len(slug + "-" + unique + "." + file_extension) > MAXIMUM_FILE_NAME_LENGTH:
+#         slug = slug[: MAXIMUM_FILE_NAME_LENGTH - len(unique + "." + file_extension) - 1]
+#     filename = slug + "-" + unique + "." + file_extension
+
+#     return filename
+
+
+# @receiver(pre_save, sender=FileUpload)
+# def check_file_pre_save(sender, **kwargs):
+#     instance: FileUpload | None = kwargs.get("instance")
+#     if instance is None:
+#         return
+
+#     instance.file_name = set_filename(instance)
+#     # instance.file is the property,
+#     # instance.file.file is the file object.
+#     instance.file_content_type = instance.file.file.content_type
+#     instance.file_size = instance.file.file.size
+#     instance.file_path = file_directory_path_fn(instance)
+
+#     return instance
 
 
 # @receiver(post_save, sender=FileUpload)

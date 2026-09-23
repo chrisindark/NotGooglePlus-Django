@@ -1,23 +1,18 @@
 import random
-from contextlib import closing
 from typing import Any
-from uuid import uuid4
 
-import boto3
-from django.conf import settings
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandParser
 from faker import Faker
 
 from apps.audio_posts.models import AudioPost
+from apps.audio_posts.services import AudioGenerationService
 from apps.profiles.models import Profile
 
 
 class Command(BaseCommand):
     help = (
         "Seeds the database with generated audio posts, uploads audio to storage, "
-        "and saves the resulting S3 URL in the audio_posts app."
+        "and saves the resulting storage URL in the audio_posts app using gTTS."
     )
 
     AUDIO_FOLDER = "audio_posts"
@@ -30,15 +25,15 @@ class Command(BaseCommand):
             help="Number of audio posts to create",
         )
         parser.add_argument(
-            "--voice",
+            "--lang",
             type=str,
-            default="Joanna",
-            help="AWS Polly voice id to use",
+            default="en",
+            help="Language code for gTTS (default: 'en')",
         )
         parser.add_argument(
             "--format",
             type=str,
-            choices=["mp3", "ogg_vorbis", "pcm"],
+            choices=["mp3"],
             default="mp3",
             help="Audio output format",
         )
@@ -52,7 +47,7 @@ class Command(BaseCommand):
 
     def handle(self, *args: Any, **options: Any) -> str | None:
         count = options["count"]
-        voice = options["voice"]
+        lang = options.get("lang", "en")
         output_format = options["format"]
         folder_name = options["folder"]
 
@@ -64,6 +59,7 @@ class Command(BaseCommand):
             return
 
         faker = Faker()
+        audio_service = AudioGenerationService()
         created = 0
 
         for index in range(count):
@@ -75,12 +71,13 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.NOTICE(f"Synthesizing audio for post {index + 1}/{count}")
             )
-            audio_bytes = self.synthesize_audio(
-                transcript, voice=voice, output_format=output_format
+            audio_url, _ = audio_service.generate_audio(
+                text=transcript,
+                title=f"post-{index + 1}",
+                lang=lang,
+                output_format=output_format,
+                folder_prefix=folder_name,
             )
-
-            key = f"{folder_name}/{uuid4()}.{output_format}"
-            audio_url = self.upload_audio(key, audio_bytes, output_format)
 
             audio_post = AudioPost.objects.create(
                 profile=profile,
@@ -93,7 +90,7 @@ class Command(BaseCommand):
 
             created += 1
             self.stdout.write(
-                self.style.SUCCESS(f"Created AudioPost {audio_post.id}: {title}")
+                self.style.SUCCESS(f"Created AudioPost {audio_post.pk}: {title}")
             )
 
         self.stdout.write(self.style.SUCCESS(f"Total audio posts created: {created}"))
@@ -128,33 +125,3 @@ class Command(BaseCommand):
             f"Transcript:\n{transcript}"
         )
 
-    def synthesize_audio(self, text: str, voice: str, output_format: str) -> bytes:
-        polly = boto3.client(
-            "polly",
-            aws_access_key_id=getattr(settings, "AWS_ACCESS_KEY_ID", None),
-            aws_secret_access_key=getattr(settings, "AWS_SECRET_ACCESS_KEY", None),
-            region_name=getattr(settings, "AWS_S3_DEFAULT_REGION", None),
-        )
-        response = polly.synthesize_speech(
-            Text=text,
-            OutputFormat=output_format,
-            VoiceId=voice,
-            TextType="text",
-        )
-
-        if "AudioStream" not in response:
-            raise RuntimeError("Polly did not return audio data")
-
-        with closing(response["AudioStream"]) as stream:
-            return stream.read()
-
-    def upload_audio(self, key: str, audio_bytes: bytes, output_format: str) -> str:
-        content_type = {
-            "mp3": "audio/mpeg",
-            "ogg_vorbis": "audio/ogg",
-            "pcm": "audio/wav",
-        }.get(output_format, "application/octet-stream")
-
-        content = ContentFile(audio_bytes)
-        saved_name = default_storage.save(key, content)
-        return default_storage.url(saved_name)

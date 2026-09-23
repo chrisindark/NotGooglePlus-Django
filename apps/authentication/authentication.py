@@ -30,7 +30,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         the `AuthenticationFailed` exception and let Django REST Framework
         handle the rest.
         """
-        logger.debug("JWTAuthentication is processing...")
+        logger.info("JWTAuthentication is processing...")
         # request.user = None
 
         # `auth_header` should be an array with two elements: 1) the name of

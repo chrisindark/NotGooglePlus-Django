@@ -46,33 +46,31 @@ class CreateSignedUrlSerializer(serializers.Serializer):
         fields = ()
 
     def validate(self, data):
-        # aws_utility = AwsS3Service()
+        folder_name = data.get("folder_name")
+        content_type = data.get("content_type")
 
-        #         # presigned_post = aws_utility.get_presigned_post(key=content_file_path, expires_in=600)
-        #         # url = presigned_post['url']
-        #         # key = presigned_post['fields']['key']
-        #         # params = {
-        #         #     'AWSAccessKeyId': presigned_post['fields']['AWSAccessKeyId'],
-        #         #     'signature': presigned_post['fields']['signature'],
-        #         #     'policy': presigned_post['fields']['policy'],
-        #         # }
-        #         # from urllib.parse import urlencode
-        #         # presigned_post['url'] = url + '/' + key + '?' + urlencode(params)
+        # Layer 1 Validation: Ensure content_type matches the folder purpose
+        if folder_name in ["audio", "recordings"] and not content_type.startswith(
+            "audio/"
+        ):
+            raise serializers.ValidationError(
+                {
+                    "content_type": f"Invalid content type '{content_type}' for folder '{folder_name}'. Must be audio/*."
+                }
+            )
+        elif folder_name == "videos" and not content_type.startswith("video/"):
+            raise serializers.ValidationError(
+                {
+                    "content_type": f"Invalid content type '{content_type}' for folder '{folder_name}'. Must be video/*."
+                }
+            )
+        elif folder_name == "images" and not content_type.startswith("image/"):
+            raise serializers.ValidationError(
+                {
+                    "content_type": f"Invalid content type '{content_type}' for folder '{folder_name}'. Must be image/*."
+                }
+            )
 
-        #         # multipart_upload = aws_utility.get_multipart_upload(key=content_file_path, expires_in=600)
-        #         # print('\n'*2, '*'*2)
-        #         # print(multipart_upload)
-        #         # print('\n'*2, '*'*2)
-
-        #         presigned_url = {
-        #             'url': aws_utility.get_presigned_put_url(key=content_file_path, expires_in=9000),
-        #             'fields': {
-        #                 'key': content_file_path
-        #             }
-        #         }
-
-        #         # return presigned_post
-        #         return presigned_url
         return data
 
 

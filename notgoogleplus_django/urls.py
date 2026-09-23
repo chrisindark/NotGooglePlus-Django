@@ -19,11 +19,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularRedocView,
-    SpectacularSwaggerView,
-)
+from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
+                                   SpectacularSwaggerView)
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
@@ -90,7 +87,10 @@ urlpatterns = (
         path("api/v1/posts/", include("apps.posts.urls")),
         path("api/v1/tags/", include("apps.tags.urls")),
         path("api/v1/articles/", include("apps.articles.urls")),
-        # path("api/v1/audio-posts/", include("apps.audio_posts.urls")),
+        path("api/v1/audio-posts/", include("apps.audio_posts.urls")),
+        path("api/v1/audio-articles/", include("apps.audio_articles.urls")),
+        path("api/v1/transcriptions/", include("apps.transcriptions.urls")),
+        # path("api/v1/evaluations/", include("apps.evaluations.urls")),
         # path('api/v1/', include('apps.files.urls')),
     ]
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

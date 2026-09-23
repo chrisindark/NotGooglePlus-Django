@@ -1,12 +1,16 @@
-from celery import shared_task
-
 # from utils.mail import api_send_mail
 # from apps.core.sqsutility import SqsUtility
-from notgoogleplus.celery import app
+import logging
 
+from celery import shared_task
+
+from notgoogleplus_django.celery import app
+
+logger = logging.getLogger(__name__)
 
 @shared_task
 def add(x, y):
+    logger.info(f"add task started for: ${x} and ${y}")
     return x + y
 
 

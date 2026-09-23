@@ -21,7 +21,15 @@ staticfiles/
 
 # Celery
 celerybeat-schedule
+celerybeat-schedule-*
 celerybeat.pid
+
+# Models & Weights
+*.onnx
+*.onnx.json
+
+# Test artifacts
+test_audio_files/
 
 # IDEs and OS
 .idea/

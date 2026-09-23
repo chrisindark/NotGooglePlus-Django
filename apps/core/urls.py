@@ -1,10 +1,8 @@
 from django.urls import path
 
-from apps.core.views import (
-    AppConfigRetrieveDetailView,
-    AppConfigUpdateView,
-    CreateSignedUrlView,
-)
+from apps.core.views import (AppConfigRetrieveDetailView, AppConfigUpdateView,
+                             CreateSignedUrlView, TestCeleryAddTaskView,
+                             TestS3UploadView)
 
 urlpatterns = (
     path(
@@ -18,6 +16,8 @@ urlpatterns = (
         name="app-config-update",
     ),
     path("signed/url/create", CreateSignedUrlView.as_view(), name="signed-url-create"),
+    path("test/upload", TestS3UploadView.as_view(), name="test-s3-upload"),
+    path("test/celery/add", TestCeleryAddTaskView.as_view(), name="test-celery-add-task"),
     # path('s3/files/', S3FileUploadListView.as_view(), name='s3-files'),
     # path('s3/files/upload/finished/', S3FileUploadCreateView.as_view(), name='s3-files-upload-finished'),
     # path('s3/files/signed/', S3FileSignedView.as_view(), name='s3-files-signed'),

@@ -4,6 +4,7 @@ from uuid import uuid4
 import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from django.conf import settings
 from django.template.defaultfilters import slugify
 
 from apps.core.constants import AWS_S3_FILE_NAME_MAX_LENGTH
@@ -25,12 +26,17 @@ preview_file_path = f"{0}{1}".format(CONTENT_PREVIEW_UPLOAD_PATH, uuid4())
 class AwsS3Service:
     def __init__(
         self,
-        access_key,
-        secret_key,
-        bucket_name,
-        region,
+        access_key=None,
+        secret_key=None,
+        bucket_name=None,
+        region=None,
         endpoint_url=None,
     ):
+        access_key = access_key or getattr(settings, "AWS_ACCESS_KEY_ID", None)
+        secret_key = secret_key or getattr(settings, "AWS_SECRET_ACCESS_KEY", None)
+        bucket_name = bucket_name or getattr(settings, "AWS_STORAGE_BUCKET_NAME", None)
+        region = region or getattr(settings, "AWS_S3_DEFAULT_REGION", None)
+        endpoint_url = endpoint_url or getattr(settings, "AWS_S3_ENDPOINT_URL", None)
 
         self.bucket = bucket_name
         self.client = boto3.client(
@@ -222,33 +228,25 @@ class AwsS3Service:
     #         settings.MEDIA_PATH + TMP_DOWNLOAD_PATH + CONTENT_UPLOAD_PATH
     #     )
 
-    # def download_fileobj(self, key):
-    #     # get tmp folder path and create if not existing
-    #     tmp_content_directory_path = self.get_content_directory_path()
-    #     if not os.path.exists(tmp_content_directory_path):
-    #         os.makedirs(tmp_content_directory_path)
+    def download_fileobj(self, key, download_path):
+        try:
+            return self.client.download_file(Bucket=self.bucket, Key=key, Filename=download_path)
+        except ClientError as e:
+            logger.error(f"Failed to download file object: {e}")
+            raise RuntimeError(f"Failed to download file object: {e}")
 
-    #     tmp_content_file_path = self.get_content_file_path(key)
-    #     # download the file object into the tmp folder with the key provided
-    #     self.client.download_file(self.bucket, key, tmp_content_file_path)
-
-    # def upload_fileobj(self, file_path, key):
-    #     # upload the file object from the file_path to s3 using the key sent
-    #     self.client.upload_file(
-    #         os.path.join(
-    #             settings.PROJECT_PATH,
-    #             settings.MEDIA_PATH + file_path
-    #         ), self.bucket, key)
-
-    # def create_thumbnail(self, key):
-    #     # create a thumbnail for the file downloaded into the tmp folder
-    #     # and return the thumbnail object
-    #     return get_thumbnail(os.path.join(
-    #         settings.PROJECT_PATH,
-    #         settings.MEDIA_PATH + TMP_DOWNLOAD_PATH + key),
-    #         '100x50', crop='center', quality=99)
-
-    # def cleanup_server_files(self, s3_thumbnail, tmp_content_file_path):
-    #     # remove the downloaded files from the server using
-    #     delete(s3_thumbnail)
-    #     delete(tmp_content_file_path)
+    def upload_fileobj(self, file_obj, key, extra_args=None):
+        """
+        Uploads a file-like object to S3.
+        """
+        try:
+            kwargs = {}
+            if extra_args:
+                kwargs["ExtraArgs"] = extra_args
+            self.client.upload_fileobj(file_obj, self.bucket, key, **kwargs)
+            # Return the generated URL
+            endpoint = self.client.meta.endpoint_url
+            return f"{endpoint}/{self.bucket}/{key}"
+        except ClientError as e:
+            logger.error(f"Failed to upload file object: {e}")
+            raise RuntimeError(f"Failed to upload file object: {e}")

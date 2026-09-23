@@ -16,7 +16,7 @@ def create_profile_on_user_save(sender, **kwargs):
     if kwargs.get("created", False):
         user = kwargs.get("instance", None)
         if user is not None:
-            logger.debug("")
+            logger.info(f"Creating user profile for user: {user.pk}")
             # create_user_profile(user.pk)
             # calling celery task to run in background
             # create_user_profile.apply_async(args=[user.pk])

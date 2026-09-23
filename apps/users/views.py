@@ -8,16 +8,13 @@ from apps.profiles.models import Profile
 from apps.users.models import User
 from apps.users.pagination import UserPagination
 from apps.users.permissions import IsUserNotAuthenticated, IsUserOwner
-from apps.users.serializers import (
-    AuthorizedUserSerializer,
-    PasswordChangeSerializer,
-    PasswordResetConfirmSerializer,
-    PasswordResetSerializer,
-    UserActivateSerializer,
-    UserActivationConfirmSerializer,
-    UserRegistrationSerializer,
-    UserSerializer,
-)
+from apps.users.serializers import (AuthorizedUserSerializer,
+                                    PasswordChangeSerializer,
+                                    PasswordResetConfirmSerializer,
+                                    PasswordResetSerializer,
+                                    UserActivateSerializer,
+                                    UserActivationConfirmSerializer,
+                                    UserRegistrationSerializer, UserSerializer)
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +50,7 @@ class UserListCreateView(UserMixin, generics.ListCreateAPIView):
         return [permissions.AllowAny()]
 
     def perform_create(self, serializer):
-        logger.debug(f"Creating new user: '{serializer.validated_data.get('email')}'")
+        logger.info(f"Creating new user: '{serializer.validated_data.get('email')}'")
         instance = serializer.save()
         self.create_profile(instance)
 
@@ -62,14 +59,14 @@ class UserListCreateView(UserMixin, generics.ListCreateAPIView):
             data=user, context={"request": self.request}
         )
         serializer.is_valid(raise_exception=True)
-        logger.debug(f"Sending activation email for user: '{user.email}'")
+        logger.info(f"Sending activation email for user: '{user.email}'")
         serializer.save()
 
     def create_profile(self, user):
         """Creates user profile when a user is created successfully."""
-        logger.debug(f"Creating new profile for user: '{user.id}'")
+        logger.info(f"Creating new profile for user: '{user.id}'")
         (user_profile, created) = Profile.objects.get_or_create(user=user)
-        logger.debug(f"Created new profile for user with '{user.id}': {created}")
+        logger.info(f"Created new profile for user with '{user.id}': {created}")
         return user_profile
 
 

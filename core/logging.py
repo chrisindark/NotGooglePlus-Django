@@ -50,7 +50,7 @@ CUSTOM_LOGGING = {
     },
     "loggers": {
         "": {
-            # this sets root level logger to log debug and higher level
+            # this sets root level logger to log info and higher level
             # logs to console. All other loggers inherit settings from
             # root level logger.
             "handlers": ["console"],
@@ -59,11 +59,65 @@ CUSTOM_LOGGING = {
             # to its parent (will send if set to True)
             "propagate": False,
         },
-        "django": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False
+        },
         "django.db": {
             # django also has database level logging
             "handlers": ["console"],
             "level": "INFO",
+            "propagate": False,
+        },
+        "apps": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "botocore": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "boto3": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "s3transfer": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "kombu": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "urllib3": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "httpx": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "httpcore": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "gtts": {
+            "handlers": ["console"],
+            "level": "WARNING",
             "propagate": False,
         },
     },
